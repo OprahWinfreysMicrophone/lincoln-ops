@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lincoln OPS">
+<title>Lincoln OPS</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#c8a400;--gold2:#f0c800;--gold3:#7a6200;--goldfaint:#1a1600;--golddim:#0e0c00;
+  --bg:#07060a;--bg2:#0d0c10;--bg3:#111018;
+  --panel:#0e0d12;--panel2:#131220;
+  --steel:#1e1d24;--steel2:#28272f;--steel3:#333240;
+  --txt:#d4b840;--txt2:#8a7820;--txt3:#4a4220;--txt4:#2a2418;
+  --white:#f0eeea;
+  --grn:#40c880;--grn2:#1a5c38;--grndim:#0a2018;
+  --red:#c84040;--reddim:#2a0808;
+  --blue:#4488cc;
+  --cat-wake:#c86400;--cat-school:#4488cc;--cat-meal:#40a860;
+  --cat-chore:#c8a400;--cat-free:#8844cc;--cat-bed:#446688;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavior:none;}
+
+/* SCANLINES */
+.scanlines{position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(200,164,0,.015) 3px,rgba(200,164,0,.015) 4px);}
+
+/* ===================== SPLASH SCREEN ===================== */
+#splash{
+  position:fixed;inset:0;background:var(--bg);z-index:9990;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px;
+}
+.splash-logo{
+  width:90px;height:90px;border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;margin-bottom:24px;
+  animation:logoIn .4s ease forwards;
+}
+@keyframes logoIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+.splash-logo::before,.splash-logo::after{
+  content:'';position:absolute;width:12px;height:12px;
+  border-color:var(--gold2);border-style:solid;
+}
+.splash-logo::before{top:-2px;left:-2px;border-width:3px 0 0 3px;}
+.splash-logo::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;}
+.splash-logo-inner{
+  font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;
+  color:var(--gold2);text-align:center;line-height:1.1;
+}
+.splash-title{
+  font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;
+  color:var(--white);letter-spacing:4px;margin-bottom:4px;
+  opacity:0;animation:fadeUp .4s .3s ease forwards;
+}
+.splash-sub{
+  font-size:9px;letter-spacing:3px;color:var(--txt3);margin-bottom:40px;
+  opacity:0;animation:fadeUp .4s .5s ease forwards;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.boot-log{
+  width:100%;max-width:380px;background:var(--bg2);
+  border:1px solid var(--steel2);padding:14px;
+  font-size:10px;letter-spacing:.5px;
+  min-height:180px;
+  opacity:0;animation:fadeUp .3s .7s ease forwards;
+}
+.boot-line{
+  color:var(--txt3);padding:2px 0;
+  opacity:0;
+}
+.boot-line.done{color:var(--txt2);}
+.boot-line.ok{color:var(--grn);}
+.boot-line.warn{color:var(--gold);}
+.boot-line span{color:var(--gold2);}
+
+.splash-bar-wrap{
+  width:100%;max-width:380px;margin-top:14px;
+  opacity:0;animation:fadeUp .3s .7s ease forwards;
+}
+.splash-bar-lbl{font-size:8px;letter-spacing:2px;color:var(--txt3);margin-bottom:6px;display:flex;justify-content:space-between;}
+.splash-bar-lbl span{color:var(--gold);}
+.splash-bar-track{height:4px;background:var(--steel);}
+.splash-bar-fill{height:100%;background:var(--gold);width:0%;transition:width .1s linear;}
+
+.splash-fadeout{animation:splashOut .5s ease forwards!important;}
+@keyframes splashOut{to{opacity:0;pointer-events:none;}}
+
+/* ===================== APP SHELL ===================== */
+#app{display:flex;flex-direction:column;height:100%;opacity:0;transition:opacity .4s;}
+#app.ready{opacity:1;}
+
+.topbar{
+  background:var(--bg2);border-bottom:1px solid var(--steel2);
+  padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.tb-left{display:flex;align-items:center;gap:10px;}
+.tb-emblem{
+  width:32px;height:32px;border:1px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--goldfaint);position:relative;flex-shrink:0;
+}
+.tb-emblem::before,.tb-emblem::after{content:'';position:absolute;width:5px;height:5px;border-color:var(--gold2);border-style:solid;}
+.tb-emblem::before{top:0;left:0;border-width:1px 0 0 1px;}
+.tb-emblem::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.tb-emblem-txt{font-family:'Orbitron',sans-serif;font-size:7px;color:var(--gold);font-weight:700;text-align:center;line-height:1.2;}
+.tb-title{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold2);font-weight:700;letter-spacing:2px;}
+.tb-sub{font-size:7px;color:var(--txt3);letter-spacing:1px;margin-top:1px;}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.tb-clk{font-family:'Orbitron',sans-serif;font-size:15px;color:var(--gold2);font-variant-numeric:tabular-nums;text-align:right;}
+.tb-dt{font-size:7px;color:var(--txt3);letter-spacing:1px;margin-top:1px;text-align:right;}
+.blink{animation:blink 1.2s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.online-pill{font-size:7px;letter-spacing:1.5px;color:var(--grn);border:1px solid var(--grn2);padding:2px 6px;display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.online-dot{width:4px;height:4px;background:var(--grn);border-radius:50%;}
+
+.gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold3) 15%,var(--gold) 50%,var(--gold3) 85%,transparent);flex-shrink:0;}
+.gold-line2{height:2px;background:linear-gradient(90deg,transparent,var(--gold3) 10%,var(--gold2) 50%,var(--gold3) 90%,transparent);flex-shrink:0;}
+
+/* SCREENS */
+.screens{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;opacity:0;pointer-events:none;transition:opacity .25s;}
+.screen.active{opacity:1;pointer-events:all;}
+.screen-body{padding:12px 14px;display:flex;flex-direction:column;gap:10px;padding-bottom:20px;}
+
+/* NAV */
+.navbar{
+  background:var(--bg2);border-top:1px solid var(--steel2);
+  display:flex;flex-shrink:0;
+}
+.nav-btn{
+  flex:1;padding:9px 4px 7px;text-align:center;cursor:pointer;
+  border:none;background:transparent;color:var(--txt3);
+  font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:.8px;
+  border-top:2px solid transparent;transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.nav-btn.active{color:var(--gold);border-top-color:var(--gold);}
+.nav-icon{font-size:13px;line-height:1;}
+
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--steel2);padding:11px;position:relative;}
+.panel::before,.panel::after{content:'';position:absolute;width:6px;height:6px;border-color:var(--gold3);border-style:solid;}
+.panel::before{top:0;left:0;border-width:1px 0 0 1px;}
+.panel::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.ph{font-size:7px;letter-spacing:2px;color:var(--gold);margin-bottom:9px;display:flex;align-items:center;gap:5px;}
+.ph::before{content:'';display:inline-block;width:3px;height:3px;background:var(--gold);flex-shrink:0;}
+.ph-line{flex:1;height:1px;background:var(--steel2);}
+.ph-count{color:var(--txt3);font-size:7px;}
+
+/* BUTTONS */
+.btn-gold{
+  background:var(--goldfaint);border:1px solid var(--gold);color:var(--gold2);
+  font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;
+  padding:12px 16px;cursor:pointer;width:100%;text-align:center;position:relative;transition:background .15s;
+}
+.btn-gold::before,.btn-gold::after{content:'';position:absolute;width:7px;height:7px;border-color:var(--gold2);border-style:solid;}
+.btn-gold::before{top:0;left:0;border-width:2px 0 0 2px;}
+.btn-gold::after{bottom:0;right:0;border-width:0 2px 2px 0;}
+.btn-gold:hover{background:#261f00;}
+.btn-ghost{background:transparent;border:1px solid var(--steel2);color:var(--txt3);
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;
+  padding:9px 14px;cursor:pointer;width:100%;text-align:center;transition:all .15s;}
+.btn-ghost:hover{border-color:var(--gold3);color:var(--txt2);}
+
+/* CATEGORY COLORS */
+.cat-wake{border-left-color:var(--cat-wake)!important;}
+.cat-school{border-left-color:var(--cat-school)!important;}
+.cat-meal{border-left-color:var(--cat-meal)!important;}
+.cat-chore{border-left-color:var(--cat-chore)!important;}
+.cat-free{border-left-color:var(--cat-free)!important;}
+.cat-bed{border-left-color:var(--cat-bed)!important;}
+.cat-tag-wake{background:#2a1400;border-color:var(--cat-wake);color:var(--cat-wake);}
+.cat-tag-school{background:#0a1a2a;border-color:var(--cat-school);color:var(--cat-school);}
+.cat-tag-meal{background:#0a1e12;border-color:var(--cat-meal);color:var(--cat-meal);}
+.cat-tag-chore{background:var(--goldfaint);border-color:var(--cat-chore);color:var(--cat-chore);}
+.cat-tag-free{background:#160a2a;border-color:var(--cat-free);color:var(--cat-free);}
+.cat-tag-bed{background:#0a1018;border-color:var(--cat-bed);color:var(--cat-bed);}
+
+/* ===================== SCREEN: BRIEFING ===================== */
+.brief-hero{text-align:center;padding:14px 0 6px;}
+.bh-eye{font-size:7px;letter-spacing:4px;color:var(--txt3);margin-bottom:8px;}
+.bh-name{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--white);line-height:1.15;}
+.bh-name span{color:var(--gold2);}
+.bh-tag{font-size:8px;color:var(--txt3);letter-spacing:2px;margin-top:5px;}
+
+.rank-card{background:var(--panel);border:1px solid var(--steel2);padding:11px;
+  display:flex;align-items:center;gap:11px;position:relative;}
+.rank-card::before,.rank-card::after{content:'';position:absolute;width:5px;height:5px;border-color:var(--gold3);border-style:solid;}
+.rank-card::before{top:0;left:0;border-width:1px 0 0 1px;}
+.rank-card::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.rank-badge{width:46px;height:46px;border:1px solid var(--gold);background:var(--goldfaint);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;}
+.rank-badge::before,.rank-badge::after{content:'';position:absolute;width:5px;height:5px;border-color:var(--gold2);border-style:solid;}
+.rank-badge::before{top:0;left:0;border-width:1px 0 0 1px;}
+.rank-badge::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.rank-abbr{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold2);font-weight:700;text-align:center;line-height:1.3;}
+.rank-info{flex:1;min-width:0;}
+.rank-lbl{font-size:6px;letter-spacing:2px;color:var(--txt3);margin-bottom:2px;}
+.rank-name-txt{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--gold2);font-weight:700;}
+.rank-track{height:3px;background:var(--steel);margin:4px 0 2px;}
+.rank-fill{height:100%;background:var(--gold);transition:width .6s;}
+.rank-xp-txt{font-size:7px;color:var(--txt3);}
+.rank-xp-txt span{color:var(--gold);}
+
+.wx-card{background:var(--panel);border:1px solid var(--steel2);padding:11px;
+  display:flex;align-items:center;gap:12px;}
+.wx-temp-big{font-family:'Orbitron',sans-serif;font-size:34px;color:var(--white);font-weight:700;line-height:1;flex-shrink:0;}
+.wx-temp-big sup{font-size:12px;color:var(--txt3);}
+.wx-right{flex:1;min-width:0;}
+.wx-cond{font-size:10px;color:var(--txt);letter-spacing:.5px;}
+.wx-note{font-size:8px;color:var(--txt3);margin-top:2px;}
+.wx-cells{display:flex;gap:5px;margin-top:7px;}
+.wx-cell{background:var(--bg2);padding:4px 6px;flex:1;text-align:center;}
+.wx-cl{font-size:6px;letter-spacing:1px;color:var(--txt4);margin-bottom:1px;}
+.wx-cv{font-family:'Orbitron',sans-serif;font-size:9px;color:var(--txt);}
+
+/* ACTIVITY ITEMS */
+.act-item{
+  background:var(--bg2);border:1px solid var(--steel);
+  border-left:3px solid var(--steel2);
+  padding:9px 10px;display:flex;align-items:center;gap:9px;
+  cursor:pointer;transition:border-color .15s,background .15s;position:relative;
+}
+.act-item:hover{background:var(--panel);}
+.act-item.active-now{background:var(--golddim);border-color:var(--gold3);border-left-width:3px;}
+.act-item.completed{opacity:.35;}
+.act-item.completed .ai-lbl{text-decoration:line-through;}
+.ai-check{width:16px;height:16px;border:1px solid var(--steel2);background:var(--bg);flex-shrink:0;position:relative;}
+.act-item.completed .ai-check{background:var(--gold);border-color:var(--gold);}
+.act-item.completed .ai-check::after{
+  content:'';position:absolute;top:2px;left:4px;
+  width:4px;height:8px;border-right:1.5px solid var(--bg);border-bottom:1.5px solid var(--bg);
+  transform:rotate(45deg);
+}
+.ai-info{flex:1;min-width:0;}
+.ai-lbl{font-size:12px;color:#ccc;display:block;}
+.act-item.active-now .ai-lbl{color:var(--white);}
+.ai-meta{display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;}
+.ai-time{font-size:8px;color:var(--txt3);font-variant-numeric:tabular-nums;}
+.act-item.active-now .ai-time{color:var(--gold);}
+.ai-cat{font-size:7px;border:1px solid;padding:1px 5px;letter-spacing:.5px;}
+.ai-ts{font-size:7px;color:var(--red);letter-spacing:.5px;}
+.ai-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;}
+.ai-xp{font-size:8px;color:var(--txt3);letter-spacing:.5px;}
+.act-item.completed .ai-xp{color:var(--grn);}
+.ai-now-tag{font-size:7px;background:var(--gold);color:var(--bg);padding:1px 5px;letter-spacing:1px;}
+
+/* ===================== SCREEN: MISSION ===================== */
+.sitrep{background:var(--panel);border:1px solid var(--steel2);padding:13px;position:relative;}
+.sitrep::before,.sitrep::after{content:'';position:absolute;width:8px;height:8px;border-color:var(--gold);border-style:solid;}
+.sitrep::before{top:0;left:0;border-width:2px 0 0 2px;}
+.sitrep::after{bottom:0;right:0;border-width:0 2px 2px 0;}
+.sr-eye{font-size:7px;letter-spacing:2px;color:var(--txt3);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.sr-pulse{width:5px;height:5px;background:var(--gold);border-radius:50%;animation:pulse 2s ease-in-out infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+.sr-act{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:var(--white);line-height:1.2;margin-bottom:5px;}
+.sr-tag{font-size:9px;color:var(--txt2);border-left:2px solid var(--gold3);padding-left:7px;letter-spacing:.5px;}
+
+.timer-blk{background:var(--golddim);border:1px solid var(--gold3);padding:14px;text-align:center;}
+.timer-lbl{font-size:7px;letter-spacing:3px;color:var(--txt3);margin-bottom:5px;}
+.timer-val{font-family:'Orbitron',sans-serif;font-size:40px;font-weight:900;color:var(--gold2);
+  font-variant-numeric:tabular-nums;letter-spacing:3px;line-height:1;}
+.timer-sub{font-size:8px;color:var(--txt3);margin-top:5px;letter-spacing:1px;}
+.prog-track{height:4px;background:var(--steel);margin-top:8px;}
+.prog-fill{height:100%;background:var(--gold);transition:width 1s linear;}
+.timer-blk.no-timer .timer-val{font-size:18px;color:var(--txt2);letter-spacing:1px;}
+
+.next-blk{background:var(--bg2);border:1px solid var(--steel);padding:9px 11px;
+  display:flex;align-items:center;gap:8px;}
+.next-lbl{font-size:6px;letter-spacing:2px;color:var(--txt3);}
+.next-val{font-size:11px;color:var(--txt2);}
+.next-time-val{font-size:10px;color:var(--txt3);margin-left:auto;font-variant-numeric:tabular-nums;flex-shrink:0;}
+
+/* ===================== SCREEN: ACTIVITIES ===================== */
+.filter-bar{display:flex;gap:5px;flex-wrap:wrap;}
+.filter-btn{background:var(--bg2);border:1px solid var(--steel2);color:var(--txt3);
+  font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;
+  padding:5px 9px;cursor:pointer;transition:all .15s;flex-shrink:0;}
+.filter-btn.on{background:var(--goldfaint);border-color:var(--gold);color:var(--gold);}
+
+/* ===================== SCREEN: REWARDS ===================== */
+.xp-balance-bar{
+  background:var(--golddim);border:1px solid var(--gold3);padding:11px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.xb-main{}.xb-lbl{font-size:6px;letter-spacing:2px;color:var(--txt3);}
+.xb-val{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--gold2);font-weight:900;line-height:1;}
+.xb-sub{font-size:7px;color:var(--txt3);margin-top:1px;}
+.xb-right{text-align:right;}
+
+.reward-card{background:var(--panel);border:1px solid var(--steel2);padding:11px;
+  display:flex;align-items:center;gap:10px;position:relative;margin-bottom:6px;}
+.reward-card::before,.reward-card::after{content:'';position:absolute;width:5px;height:5px;border-color:var(--steel2);border-style:solid;}
+.reward-card::before{top:0;left:0;border-width:1px 0 0 1px;}
+.reward-card::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.reward-card.can::before,.reward-card.can::after{border-color:var(--gold3);}
+.reward-icon{width:40px;height:40px;background:var(--bg2);border:1px solid var(--steel2);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.reward-info{flex:1;min-width:0;}
+.reward-name{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--white);font-weight:700;}
+.reward-desc{font-size:8px;color:var(--txt3);margin-top:2px;}
+.reward-cost{font-size:8px;color:var(--txt3);margin-top:3px;}
+.reward-cost span{color:var(--gold);font-family:'Orbitron',sans-serif;font-size:10px;}
+.reward-btn{background:var(--steel);border:1px solid var(--steel2);color:var(--txt3);
+  font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;
+  padding:8px 9px;cursor:pointer;flex-shrink:0;transition:all .15s;white-space:nowrap;}
+.reward-btn.can{background:var(--goldfaint);border-color:var(--gold);color:var(--gold);}
+.reward-btn.can:hover{background:#261f00;}
+
+.unlocked-item{background:var(--grndim);border:1px solid var(--grn2);padding:7px 10px;
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:10px;color:var(--grn);}
+.ul-date{font-size:7px;color:var(--grn2);}
+
+/* ===================== SCREEN: DEBRIEF ===================== */
+.debrief-hero{background:var(--panel);border:1px solid var(--steel2);padding:16px;text-align:center;position:relative;}
+.debrief-hero::before,.debrief-hero::after{content:'';position:absolute;width:9px;height:9px;border-color:var(--gold);border-style:solid;}
+.debrief-hero::before{top:0;left:0;border-width:2px 0 0 2px;}
+.debrief-hero::after{bottom:0;right:0;border-width:0 2px 2px 0;}
+.dh-eye{font-size:7px;letter-spacing:3px;color:var(--txt3);margin-bottom:7px;}
+.dh-score{font-family:'Orbitron',sans-serif;font-size:56px;font-weight:900;line-height:1;}
+.dh-grade{font-size:9px;letter-spacing:2px;color:var(--txt3);margin-top:4px;}
+.dh-msg{font-size:10px;color:var(--txt2);margin-top:8px;line-height:1.5;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.stat-cell{background:var(--panel);border:1px solid var(--steel2);padding:9px;text-align:center;}
+.stat-lbl{font-size:6px;letter-spacing:1.5px;color:var(--txt3);margin-bottom:3px;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:16px;color:var(--gold2);font-weight:700;}
+
+.streak-card{background:var(--panel);border:1px solid var(--steel2);padding:11px;
+  display:flex;align-items:center;gap:11px;}
+.streak-num{font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;color:var(--gold2);line-height:1;}
+.streak-lbl{font-size:6px;letter-spacing:2px;color:var(--txt3);margin-bottom:3px;}
+.streak-desc{font-size:9px;color:var(--txt2);}
+
+/* TOAST + XP FLASH */
+.toast{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);
+  background:var(--goldfaint);border:1px solid var(--gold);color:var(--gold2);
+  font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;
+  padding:9px 18px;z-index:9995;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+.toast.show{opacity:1;}
+.xp-flash{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--gold2);
+  pointer-events:none;z-index:9996;opacity:0;letter-spacing:3px;}
+.xp-flash.show{animation:xpfl .8s ease-out forwards;}
+@keyframes xpfl{0%{opacity:1;transform:translate(-50%,-60%);}100%{opacity:0;transform:translate(-50%,-100%);}}
+
+/* BOTBAR */
+.botbar{background:var(--bg2);border-top:1px solid var(--steel2);padding:5px 14px;
+  display:flex;align-items:center;justify-content:space-between;font-size:7px;color:var(--txt3);
+  letter-spacing:.7px;flex-shrink:0;}
+
+/* LOADING STATE */
+.loading-msg{font-size:11px;color:var(--txt3);text-align:center;padding:20px;letter-spacing:1px;}
+.error-msg{font-size:10px;color:var(--red);text-align:center;padding:16px;letter-spacing:.5px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="toast" id="toast"></div>
+<div class="xp-flash" id="xp-flash"></div>
+
+<!-- ===================== SPLASH ===================== -->
+<div id="splash">
+  <div class="splash-logo">
+    <div class="splash-logo-inner">L<br>OPS</div>
+  </div>
+  <div class="splash-title">LINCOLN OPS</div>
+  <div class="splash-sub">DAILY MISSION SYSTEM — FIELD UNIT 001</div>
+  <div class="boot-log" id="boot-log"></div>
+  <div class="splash-bar-wrap">
+    <div class="splash-bar-lbl">SYSTEM INIT <span id="boot-pct">0%</span></div>
+    <div class="splash-bar-track"><div class="splash-bar-fill" id="boot-bar"></div></div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-emblem"><span class="tb-emblem-txt">L<br>OPS</span></div>
+      <div>
+        <div class="tb-title" id="app-title">LINCOLN OPS</div>
+        <div class="tb-sub" id="app-sub">DAILY MISSION SYSTEM</div>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="online-pill"><div class="online-dot blink"></div>LIVE</div>
+      <div>
+        <div class="tb-clk" id="clk">--:--</div>
+        <div class="tb-dt" id="dt">---</div>
+      </div>
+    </div>
+  </div>
+  <div class="gold-line2"></div>
+
+  <!-- SCREENS -->
+  <div class="screens">
+
+    <!-- BRIEFING -->
+    <div class="screen active" id="s-brief">
+      <div class="screen-body">
+        <div class="brief-hero">
+          <div class="bh-eye">— DAILY MISSION BRIEFING —</div>
+          <div class="bh-name">GOOD <span id="b-tod">MORNING</span>,<br>OPERATOR <span>LINCOLN.</span></div>
+          <div class="bh-tag" id="b-tag">STAND BY FOR TODAY'S ORDERS.</div>
+        </div>
+        <div class="rank-card">
+          <div class="rank-badge"><div class="rank-abbr" id="b-rank-abbr">PVT</div></div>
+          <div class="rank-info">
+            <div class="rank-lbl">CURRENT RANK</div>
+            <div class="rank-name-txt" id="b-rank-name">PRIVATE</div>
+            <div class="rank-track"><div class="rank-fill" id="b-rank-fill" style="width:0%"></div></div>
+            <div class="rank-xp-txt">LIFETIME XP: <span id="b-lxp">0</span> · NEXT: <span id="b-nxp">500</span></div>
+          </div>
+        </div>
+        <div class="wx-card">
+          <div class="wx-temp-big" id="b-temp">--<sup>°F</sup></div>
+          <div class="wx-right">
+            <div class="wx-cond" id="b-cond">LOADING INTEL...</div>
+            <div class="wx-note" id="b-note">Washington, IN</div>
+            <div class="wx-cells">
+              <div class="wx-cell"><div class="wx-cl">FEELS</div><div class="wx-cv" id="b-fl">--°</div></div>
+              <div class="wx-cell"><div class="wx-cl">WIND</div><div class="wx-cv" id="b-wnd">--</div></div>
+              <div class="wx-cell"><div class="wx-cl">HUMID</div><div class="wx-cv" id="b-hum">--%</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Today's Activities<div class="ph-line"></div><span class="ph-count" id="b-act-count"></span></div>
+          <div id="b-act-list"><div class="loading-msg">LOADING ACTIVITIES...</div></div>
+        </div>
+        <button class="btn-gold" onclick="nav('mission')">▶ &nbsp; DEPLOY TO ACTIVE MISSION</button>
+      </div>
+    </div>
+
+    <!-- MISSION -->
+    <div class="screen" id="s-mission">
+      <div class="screen-body">
+        <div class="sitrep">
+          <div class="sr-eye"><div class="sr-pulse"></div>CURRENT MISSION BLOCK</div>
+          <div class="sr-act" id="m-act">Scanning...</div>
+          <div class="sr-tag" id="m-tag">Stand by</div>
+        </div>
+        <div class="timer-blk" id="m-timer-blk">
+          <div class="timer-lbl" id="m-timer-lbl">TIME REMAINING IN BLOCK</div>
+          <div class="timer-val" id="m-timer">--:--</div>
+          <div class="timer-sub" id="m-timer-sub">calculating...</div>
+          <div class="prog-track"><div class="prog-fill" id="m-prog" style="width:0%"></div></div>
+        </div>
+        <div class="next-blk">
+          <div>
+            <div class="next-lbl">NEXT TIMED ACTIVITY</div>
+            <div class="next-val" id="m-next">--</div>
+          </div>
+          <div class="next-time-val" id="m-next-time">--</div>
+        </div>
+        <div class="panel">
+          <div class="ph">Full Schedule<div class="ph-line"></div></div>
+          <div id="m-sched"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITIES -->
+    <div class="screen" id="s-activities">
+      <div class="screen-body">
+        <div class="filter-bar" id="filter-bar">
+          <button class="filter-btn on" onclick="setFilter('all',this)">ALL</button>
+          <button class="filter-btn" onclick="setFilter('timed',this)">TIMED</button>
+          <button class="filter-btn" onclick="setFilter('anytime',this)">ANYTIME</button>
+          <button class="filter-btn" onclick="setFilter('incomplete',this)">TO-DO</button>
+        </div>
+        <div class="panel">
+          <div class="ph">Activities<div class="ph-line"></div><span class="ph-count" id="act-count"></span></div>
+          <div id="act-list"><div class="loading-msg">LOADING...</div></div>
+        </div>
+        <div class="panel">
+          <div class="ph">XP Progress Today<div class="ph-line"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--txt3);margin-bottom:4px;letter-spacing:1px;">
+            <span>TODAY'S XP</span><span id="act-xp-lbl" style="color:var(--gold);">0 / 0</span>
+          </div>
+          <div class="prog-track"><div class="prog-fill" id="act-xp-fill" style="width:0%"></div></div>
+        </div>
+        <button class="btn-ghost" onclick="resetActivities()">⟳ &nbsp; RESET ALL ACTIVITIES (PARENT)</button>
+      </div>
+    </div>
+
+    <!-- REWARDS -->
+    <div class="screen" id="s-rewards">
+      <div class="screen-body">
+        <div class="xp-balance-bar">
+          <div class="xb-main">
+            <div class="xb-lbl">SPENDABLE XP</div>
+            <div class="xb-val" id="r-bal">0</div>
+            <div class="xb-sub">Earned from completed activities</div>
+          </div>
+          <div class="xb-right">
+            <div class="xb-lbl">LIFETIME SPENT</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:13px;color:var(--txt2);margin-top:2px;" id="r-spent">0</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Reward Shop<div class="ph-line"></div></div>
+          <div id="reward-shop"></div>
+        </div>
+        <div class="panel" id="unlocked-panel" style="display:none;">
+          <div class="ph">Unlocked<div class="ph-line"></div></div>
+          <div id="unlocked-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEBRIEF -->
+    <div class="screen" id="s-debrief">
+      <div class="screen-body">
+        <div class="debrief-hero">
+          <div class="dh-eye">— DAILY PERFORMANCE REPORT —</div>
+          <div class="dh-score" id="d-score">--</div>
+          <div class="dh-grade" id="d-grade">CALCULATING</div>
+          <div class="dh-msg" id="d-msg">Stand by.</div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-cell"><div class="stat-lbl">XP TODAY</div><div class="stat-val" id="d-xp">0</div></div>
+          <div class="stat-cell"><div class="stat-lbl">DONE</div><div class="stat-val" id="d-done">0/0</div></div>
+          <div class="stat-cell"><div class="stat-lbl">RANK</div><div class="stat-val" id="d-rank-abbr">PVT</div></div>
+        </div>
+        <div class="streak-card">
+          <div class="streak-num" id="d-streak">0</div>
+          <div>
+            <div class="streak-lbl">DAY STREAK</div>
+            <div class="streak-desc" id="d-streak-desc">Complete all activities to build your streak.</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="ph">Rank Progress<div class="ph-line"></div></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="font-family:'Orbitron',sans-serif;font-size:12px;color:var(--gold2);font-weight:700;min-width:32px;" id="d-rank-abbr2"></div>
+            <div style="flex:1;">
+              <div style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold2);margin-bottom:3px;" id="d-rank-name"></div>
+              <div class="rank-track"><div class="rank-fill" id="d-rank-fill" style="width:0%"></div></div>
+              <div class="rank-xp-txt" style="margin-top:2px;"><span id="d-lxp">0</span> XP · Next: <span id="d-nxp">500</span></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-gold" onclick="nav('brief')">◉ &nbsp; NEW BRIEFING</button>
+      </div>
+    </div>
+
+  </div><!-- /screens -->
+
+  <div class="botbar">
+    <div><span class="blink">■</span> LINCOLN OPS v2.0</div>
+    <div id="bot-msg">SYSTEM READY.</div>
+  </div>
+
+  <div class="navbar">
+    <button class="nav-btn active" onclick="nav('brief')"><span class="nav-icon">◉</span>BRIEF</button>
+    <button class="nav-btn" onclick="nav('mission')"><span class="nav-icon">▶</span>MISSION</button>
+    <button class="nav-btn" onclick="nav('activities')"><span class="nav-icon">✓</span>ACTIVITIES</button>
+    <button class="nav-btn" onclick="nav('rewards')"><span class="nav-icon">★</span>REWARDS</button>
+    <button class="nav-btn" onclick="nav('debrief')"><span class="nav-icon">◈</span>DEBRIEF</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURATION — PASTE YOUR GOOGLE SHEET URL HERE
+   
+   Steps:
+   1. Make a Google Sheet using the template columns below
+   2. File → Share → Publish to web → CSV format → publish
+   3. Copy the published CSV URL and paste it below
+   
+   Sheet columns (Row 1 = headers, exact names):
+   name | category | time | time_sensitive | xp | days | notes
+   
+   category values: wake, school, meal, chore, free, bed
+   time: leave blank if anytime (e.g. "7:00" or leave empty)
+   time_sensitive: yes or no
+   xp: number (e.g. 15)
+   days: all  OR  mon,tue,wed,thu,fri  OR  sat,sun  etc.
+   ============================================================ */
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8XX_9pi2ZijleET-32U9Sog6-CugI2T0T8A41xew2RcEJPf6E48NsQRGYRIHHxA/pub?gid=785553101&single=true&output=csv';
+
+/* ============================================================
+   FALLBACK ACTIVITIES — used when sheet not yet connected
+   ============================================================ */
+const FALLBACK_ACTIVITIES = [
+  {name:"Wake up & get ready",   category:"wake",   start_time:"7:00",  end_time:"7:30",  time_sensitive:true,  xp:10, days:"all"},
+  {name:"Breakfast",             category:"meal",   start_time:"7:30",  end_time:"8:00",  time_sensitive:true,  xp:10, days:"all"},
+  {name:"School",                category:"school", start_time:"8:00",  end_time:"15:30", time_sensitive:true,  xp:20, days:"mon,tue,wed,thu,fri"},
+  {name:"Make your bed",         category:"chore",  start_time:"",      end_time:"",      time_sensitive:false, xp:10, days:"all"},
+  {name:"Put dirty clothes away",category:"chore",  start_time:"",      end_time:"",      time_sensitive:false, xp:10, days:"all"},
+  {name:"Feed the pets",         category:"chore",  start_time:"",      end_time:"",      time_sensitive:false, xp:15, days:"all"},
+  {name:"Pick up room",          category:"chore",  start_time:"",      end_time:"",      time_sensitive:false, xp:15, days:"all"},
+  {name:"Home / Snack",          category:"meal",   start_time:"15:30", end_time:"16:00", time_sensitive:true,  xp:5,  days:"mon,tue,wed,thu,fri"},
+  {name:"Homework",              category:"school", start_time:"16:00", end_time:"17:30", time_sensitive:true,  xp:25, days:"mon,tue,wed,thu,fri"},
+  {name:"Free time / Airsoft",   category:"free",   start_time:"17:30", end_time:"19:00", time_sensitive:false, xp:0,  days:"all"},
+  {name:"Dinner",                category:"meal",   start_time:"19:00", end_time:"19:30", time_sensitive:true,  xp:5,  days:"all"},
+  {name:"Take out trash",        category:"chore",  start_time:"",      end_time:"",      time_sensitive:false, xp:20, days:"all"},
+  {name:"Brush teeth",           category:"bed",    start_time:"20:30", end_time:"20:45", time_sensitive:true,  xp:10, days:"all"},
+  {name:"Wind down",             category:"bed",    start_time:"20:30", end_time:"21:00", time_sensitive:true,  xp:5,  days:"all"},
+  {name:"Lights out",            category:"bed",    start_time:"21:00", end_time:"",      time_sensitive:true,  xp:5,  days:"all"},
+];
+
+const RANKS=[
+  {name:"PRIVATE",   abbr:"PVT", min:0,     max:500},
+  {name:"CORPORAL",  abbr:"CPL", min:500,   max:1200},
+  {name:"SERGEANT",  abbr:"SGT", min:1200,  max:2500},
+  {name:"STAFF SGT", abbr:"SSG", min:2500,  max:4500},
+  {name:"LIEUTENANT",abbr:"LT",  min:4500,  max:7500},
+  {name:"CAPTAIN",   abbr:"CPT", min:7500,  max:12000},
+  {name:"MAJOR",     abbr:"MAJ", min:12000, max:20000},
+  {name:"COLONEL",   abbr:"COL", min:20000, max:35000},
+  {name:"GENERAL",   abbr:"GEN", min:35000, max:35000},
+];
+
+const REWARDS=[
+  {id:"airsoft", name:"AIRSOFT SESSION",    desc:"Full airsoft session approved",     cost:150, icon:"🎯"},
+  {id:"xbox",    name:"EXTRA 30 MIN XBOX",  desc:"30 bonus minutes of Xbox",          cost:75,  icon:"🎮"},
+  {id:"money",   name:"$1 CASH",            desc:"One real dollar, soldier",          cost:100, icon:"💵"},
+];
+
+const CAT_LABELS={wake:"WAKE UP",school:"SCHOOL",meal:"MEAL",chore:"CHORE",free:"FREE TIME",bed:"BEDTIME"};
+const DAY_KEYS=["sun","mon","tue","wed","thu","fri","sat"];
+
+let ACTIVITIES = [];
+let activeFilter = 'all';
+
+/* ---- HELPERS ---- */
+function toMins(t){if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m;}
+function getLXP(){return parseInt(localStorage.getItem('lops2_lxp')||'0');}
+function setLXP(v){localStorage.setItem('lops2_lxp',String(v));}
+function getSpendable(){return parseInt(localStorage.getItem('lops2_spendable')||'0');}
+function setSpendable(v){localStorage.setItem('lops2_spendable',String(v));}
+function getSpentXP(){return parseInt(localStorage.getItem('lops2_spent')||'0');}
+function setSpentXP(v){localStorage.setItem('lops2_spent',String(v));}
+function getStreak(){return parseInt(localStorage.getItem('lops2_streak')||'0');}
+function actKey(i){return `lops2_act_${i}`;}
+function isActDone(i){return localStorage.getItem(actKey(i))==='1';}
+function setActDone(i,v){localStorage.setItem(actKey(i),v?'1':'0');}
+
+function getRankData(){
+  const lxp=getLXP();
+  let r=RANKS[0],idx=0;
+  RANKS.forEach((rk,i)=>{if(lxp>=rk.min){r=rk;idx=i;}});
+  const next=RANKS[idx+1];
+  const pct=next?Math.round(((lxp-r.min)/(r.max-r.min))*100):100;
+  return{rank:r,idx,lxp,next,pct};
+}
+
+function todayDayKey(){return DAY_KEYS[new Date().getDay()];}
+
+function getActivitiesForToday(){
+  const day=todayDayKey();
+  return ACTIVITIES.filter(a=>{
+    if(!a.days||a.days.trim().toLowerCase()==='all') return true;
+    const dlist=a.days.toLowerCase().split(',').map(d=>d.trim());
+    return dlist.includes(day);
+  });
+}
+
+function getTodayXP(){
+  return getActivitiesForToday().reduce((sum,a,i)=>sum+(isActDone(i)?parseInt(a.xp||0):0),0);
+}
+function getTotalAvailXP(){
+  return getActivitiesForToday().reduce((sum,a)=>sum+parseInt(a.xp||0),0);
+}
+
+function getTimedList(){
+  return getActivitiesForToday()
+    .map((a,i)=>({...a,idx:i}))
+    .filter(a=>a.start_time)
+    .sort((a,b)=>toMins(a.start_time)-toMins(b.start_time));
+}
+function getEndMins(a,timedList){
+  if(a.end_time) return toMins(a.end_time);
+  const pos=timedList.findIndex(x=>x.idx===a.idx);
+  return pos+1<timedList.length?toMins(timedList[pos+1].start_time):toMins(a.start_time)+90;
+}
+function getCurrentBlock(){
+  const totalMins=new Date().getHours()*60+new Date().getMinutes();
+  const timed=getTimedList();
+  for(let i=0;i<timed.length;i++){
+    const sm=toMins(timed[i].start_time);
+    const nm=getEndMins(timed[i],timed);
+    if(totalMins>=sm&&totalMins<nm) return timed[i];
+  }
+  return null;
+}
+
+/* ---- CLOCK ---- */
+function setClocks(){
+  const now=new Date();
+  const h=now.getHours(),m=now.getMinutes();
+  const h12=h%12||12,ampm=h>=12?'PM':'AM';
+  const t=`${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+  const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const d=`${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  document.getElementById('clk').textContent=t;
+  document.getElementById('dt').textContent=d;
+}
+
+/* ---- NAV ---- */
+function nav(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s-'+screen).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    if(b.getAttribute('onclick')===`nav('${screen}')`) b.classList.add('active');
+  });
+  const titles={brief:"LINCOLN OPS",mission:"ACTIVE MISSION",activities:"MISSION BOARD",rewards:"REWARDS DEPOT",debrief:"EVENING DEBRIEF"};
+  document.getElementById('app-title').textContent=titles[screen]||'LINCOLN OPS';
+  if(screen==='brief') renderBrief();
+  if(screen==='mission') renderMission();
+  if(screen==='activities') renderActivities();
+  if(screen==='rewards') renderRewards();
+  if(screen==='debrief') renderDebrief();
+}
+
+/* ---- RENDER BRIEFING ---- */
+function renderBrief(){
+  const h=new Date().getHours();
+  document.getElementById('b-tod').textContent=h<12?'MORNING':h<17?'AFTERNOON':'EVENING';
+  const {rank,idx,lxp,next,pct}=getRankData();
+  document.getElementById('b-rank-abbr').textContent=rank.abbr;
+  document.getElementById('b-rank-name').textContent=rank.name;
+  document.getElementById('b-rank-fill').style.width=pct+'%';
+  document.getElementById('b-lxp').textContent=lxp.toLocaleString();
+  document.getElementById('b-nxp').textContent=next?next.min.toLocaleString():'MAX';
+
+  const today=getActivitiesForToday();
+  const now=new Date();
+  const totalMins=now.getHours()*60+now.getMinutes();
+  const cur=getCurrentBlock();
+  const container=document.getElementById('b-act-list');
+  container.innerHTML='';
+  let shown=0;
+  const timed=getTimedList();
+  today.forEach((a,i)=>{
+    if(shown>=8&&!a.start_time) return;
+    const isCur=cur&&cur.idx===i;
+    const sm=a.start_time?toMins(a.start_time):null;
+    const nm=sm?getEndMins({...a,idx:i},timed):null;
+    const isDone=isActDone(i)||(sm&&nm&&totalMins>=nm);
+    const timeLabel=a.start_time?(a.end_time?`${a.start_time}–${a.end_time}`:a.start_time):'';
+    const div=document.createElement('div');
+    div.className='act-item'+(isCur?' active-now':isDone?' completed':'')+(` cat-${a.category||'chore'}`);
+    div.innerHTML=`
+      <div class="ai-check"></div>
+      <div class="ai-info">
+        <span class="ai-lbl">${a.name}</span>
+        <div class="ai-meta">
+          ${timeLabel?`<span class="ai-time">${timeLabel}</span>`:''}
+          <span class="ai-cat cat-tag-${a.category||'chore'}">${CAT_LABELS[a.category]||a.category}</span>
+          ${a.time_sensitive?'<span class="ai-ts">⚡ TIMED</span>':''}
+        </div>
+      </div>
+      <div class="ai-right">
+        ${parseInt(a.xp||0)>0?`<span class="ai-xp">${isDone?'✓ ':'+'}${a.xp}XP</span>`:''}
+        ${isCur?'<span class="ai-now-tag">NOW</span>':''}
+      </div>`;
+    container.appendChild(div);
+    shown++;
+  });
+  document.getElementById('b-act-count').textContent=today.length+' OPS';
+}
+
+/* ---- RENDER MISSION ---- */
+function renderMission(){
+  const now=new Date();
+  const h=now.getHours(),m=now.getMinutes(),s=now.getSeconds();
+  const totalMins=h*60+m;
+  const cur=getCurrentBlock();
+  const today=getActivitiesForToday();
+  const timed=getTimedList();
+
+  if(cur){
+    const sm=toMins(cur.start_time);
+    const endMins=getEndMins(cur,timed);
+    const duration=endMins-sm;
+    const elapsed=totalMins-sm;
+    const remSecs=(endMins*60)-(h*3600+m*60+s);
+    const remM=Math.floor(Math.max(0,remSecs)/60);
+    const remS=Math.max(0,remSecs)%60;
+    const pct=Math.min(100,Math.round((elapsed/duration)*100));
+    const pos=timed.findIndex(x=>x.idx===cur.idx);
+    const nextItem=timed[pos+1];
+
+    document.getElementById('m-act').textContent=cur.name;
+    document.getElementById('m-tag').textContent=cur.category==='school'?'KNOWLEDGE IS YOUR SHARPEST WEAPON.':
+      cur.category==='chore'?'HANDLE BUSINESS FIRST.':
+      cur.category==='meal'?'FUEL UP. EVERY MISSION NEEDS ENERGY.':
+      cur.category==='free'?'MISSION EARNED. DEPLOY.':
+      cur.category==='wake'?'RISE AND GRIND, SOLDIER.':
+      cur.category==='bed'?'DECOMPRESS. REST IS TACTICAL.':'STAY FOCUSED, OPERATOR.';
+    document.getElementById('m-timer-blk').className='timer-blk';
+    document.getElementById('m-timer-lbl').textContent=cur.end_time?`ENDS AT ${cur.end_time}`:'TIME REMAINING';
+    document.getElementById('m-timer').textContent=`${String(remM).padStart(2,'0')}:${String(remS).padStart(2,'0')}`;
+    document.getElementById('m-timer-sub').textContent=`${remM}m ${remS}s UNTIL BLOCK ENDS`;
+    document.getElementById('m-prog').style.width=pct+'%';
+    document.getElementById('m-next').textContent=nextItem?nextItem.name:'STAND DOWN';
+    document.getElementById('m-next-time').textContent=nextItem?nextItem.start_time:'--';
+  } else {
+    const upcoming=timed.find(a=>toMins(a.start_time)>totalMins);
+    document.getElementById('m-act').textContent=upcoming?`STANDBY — UP NEXT: ${upcoming.name}`:'ALL TIMED MISSIONS COMPLETE';
+    document.getElementById('m-tag').textContent=upcoming?`NEXT BLOCK STARTS AT ${upcoming.start_time}`:'OUTSTANDING WORK TODAY.';
+    document.getElementById('m-timer-blk').className='timer-blk no-timer';
+    document.getElementById('m-timer').textContent='STANDBY';
+    document.getElementById('m-timer-sub').textContent='NO ACTIVE TIMED BLOCK';
+    document.getElementById('m-prog').style.width='0%';
+    document.getElementById('m-next').textContent=upcoming?upcoming.name:'--';
+    document.getElementById('m-next-time').textContent=upcoming?upcoming.start_time:'--';
+  }
+
+  const sched=document.getElementById('m-sched');
+  sched.innerHTML='';
+  timed.forEach(a=>{
+    const sm=toMins(a.start_time);
+    const nm=getEndMins(a,timed);
+    const isCur=cur&&cur.idx===a.idx;
+    const isDone=totalMins>=nm&&!isCur;
+    const timeLabel=a.end_time?`${a.start_time}–${a.end_time}`:a.start_time;
+    const div=document.createElement('div');
+    div.className='act-item'+(isCur?' active-now':isDone?' completed':'')+(` cat-${a.category||'chore'}`);
+    div.style.marginBottom='4px';
+    div.innerHTML=`<div class="ai-info"><span class="ai-lbl">${a.name}</span>
+      <div class="ai-meta"><span class="ai-time">${timeLabel}</span>
+      <span class="ai-cat cat-tag-${a.category||'chore'}">${CAT_LABELS[a.category]||a.category}</span></div></div>
+      ${isCur?'<span class="ai-now-tag">NOW</span>':''}`;
+    sched.appendChild(div);
+  });
+}
+
+/* ---- RENDER ACTIVITIES ---- */
+function setFilter(f,el){
+  activeFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderActivities();
+}
+
+function renderActivities(){
+  const today=getActivitiesForToday();
+  const totalXP=getTotalAvailXP();
+  const earnedXP=getTodayXP();
+  document.getElementById('act-xp-lbl').textContent=`${earnedXP} / ${totalXP} XP`;
+  document.getElementById('act-xp-fill').style.width=totalXP>0?Math.round((earnedXP/totalXP)*100)+'%':'0%';
+
+  let filtered=today;
+  if(activeFilter==='timed') filtered=today.filter(a=>a.time);
+  if(activeFilter==='anytime') filtered=today.filter(a=>!a.time);
+  if(activeFilter==='incomplete') filtered=today.filter((_,i)=>!isActDone(i));
+
+  const list=document.getElementById('act-list');
+  list.innerHTML='';
+  if(filtered.length===0){
+    list.innerHTML='<div class="loading-msg" style="color:var(--grn);">ALL CLEAR — NOTHING LEFT HERE.</div>';
+  } else {
+    filtered.forEach((a)=>{
+      const origIdx=today.indexOf(a);
+      const done=isActDone(origIdx);
+      const div=document.createElement('div');
+      div.className='act-item'+(done?' completed':'')+(` cat-${a.category||'chore'}`);
+      div.style.marginBottom='5px';
+      div.innerHTML=`
+        <div class="ai-check"></div>
+        <div class="ai-info">
+          <span class="ai-lbl">${a.name}</span>
+          <div class="ai-meta">
+            ${a.start_time?(a.end_time?`<span class="ai-time">${a.start_time}–${a.end_time}</span>`:`<span class="ai-time">${a.start_time}</span>`):'<span class="ai-time" style="color:var(--txt4);">ANYTIME</span>'}
+            <span class="ai-cat cat-tag-${a.category||'chore'}">${CAT_LABELS[a.category]||a.category}</span>
+            ${a.time_sensitive?'<span class="ai-ts">⚡ TIMED</span>':''}
+          </div>
+          ${a.notes?`<div style="font-size:8px;color:var(--txt3);margin-top:3px;letter-spacing:.3px;">${a.notes}</div>`:''}
+        </div>
+        <div class="ai-right">
+          ${parseInt(a.xp||0)>0?`<span class="ai-xp">${done?'✓ ':'+'}${a.xp}XP</span>`:''}
+        </div>`;
+      if(!done){
+        div.onclick=()=>completeActivity(origIdx,a);
+      }
+      list.appendChild(div);
+    });
+  }
+  document.getElementById('act-count').textContent=filtered.length+' / '+today.length;
+
+  const allDone=today.every((_,i)=>isActDone(i));
+  document.getElementById('bot-msg').textContent=allDone?'ALL MISSIONS COMPLETE. FULL XP EARNED.':'COMPLETE ACTIVITIES TO EARN XP.';
+}
+
+function completeActivity(idx,a){
+  setActDone(idx,true);
+  const xp=parseInt(a.xp||0);
+  if(xp>0){
+    setLXP(getLXP()+xp);
+    setSpendable(getSpendable()+xp);
+    playXP();
+    showXPFlash('+'+xp+' XP');
+  }
+  renderActivities();
+  const today=getActivitiesForToday();
+  if(today.every((_,i)=>isActDone(i))){
+    localStorage.setItem('lops2_streak',String(getStreak()+1));
+    setTimeout(()=>showToast('ALL MISSIONS COMPLETE — OUTSTANDING!'),500);
+  }
+}
+
+function resetActivities(){
+  if(!confirm('Reset all activities? (Parent only)')) return;
+  ACTIVITIES.forEach((_,i)=>localStorage.removeItem(actKey(i)));
+  renderActivities();
+  if(document.getElementById('s-brief').classList.contains('active')) renderBrief();
+  showToast('ACTIVITIES RESET — NEW DAY, NEW MISSION.');
+}
+
+/* ---- RENDER REWARDS ---- */
+function renderRewards(){
+  const sp=getSpendable();
+  document.getElementById('r-bal').textContent=sp.toLocaleString();
+  document.getElementById('r-spent').textContent=getSpentXP().toLocaleString();
+  const shop=document.getElementById('reward-shop');
+  shop.innerHTML='';
+  REWARDS.forEach(r=>{
+    const can=sp>=r.cost;
+    const div=document.createElement('div');
+    div.className='reward-card'+(can?' can':'');
+    div.innerHTML=`
+      <div class="reward-icon">${r.icon}</div>
+      <div class="reward-info">
+        <div class="reward-name">${r.name}</div>
+        <div class="reward-desc">${r.desc}</div>
+        <div class="reward-cost">COST: <span>${r.cost} XP</span></div>
+      </div>
+      <button class="reward-btn${can?' can':''}" ${can?'':'disabled'} onclick="unlockReward('${r.id}',${r.cost},'${r.name}')">
+        ${can?'UNLOCK':'LOCKED'}
+      </button>`;
+    shop.appendChild(div);
+  });
+  const unlocks=JSON.parse(localStorage.getItem('lops2_unlocks')||'[]');
+  const up=document.getElementById('unlocked-panel');
+  const ul=document.getElementById('unlocked-list');
+  if(unlocks.length){
+    up.style.display='block';
+    ul.innerHTML='';
+    unlocks.slice().reverse().forEach(u=>{
+      const d=document.createElement('div');
+      d.className='unlocked-item';
+      d.innerHTML=`<span>${u.name}</span><span class="ul-date">${u.date}</span>`;
+      ul.appendChild(d);
+    });
+  } else up.style.display='none';
+}
+
+function unlockReward(id,cost,name){
+  const sp=getSpendable();
+  if(sp<cost) return;
+  setSpendable(sp-cost);
+  setSpentXP(getSpentXP()+cost);
+  const unlocks=JSON.parse(localStorage.getItem('lops2_unlocks')||'[]');
+  unlocks.push({id,name,date:new Date().toLocaleDateString(),cost});
+  localStorage.setItem('lops2_unlocks',JSON.stringify(unlocks));
+  playSuccess();
+  showToast('REWARD UNLOCKED: '+name);
+  renderRewards();
+}
+
+/* ---- RENDER DEBRIEF ---- */
+function renderDebrief(){
+  const today=getActivitiesForToday();
+  const earned=getTodayXP();
+  const total=getTotalAvailXP();
+  const done=today.filter((_,i)=>isActDone(i)).length;
+  const pct=total>0?Math.round((earned/total)*100):0;
+  const streak=getStreak();
+  const {rank,idx,lxp,next,pct:rpct}=getRankData();
+
+  document.getElementById('d-xp').textContent=earned;
+  document.getElementById('d-done').textContent=`${done}/${today.length}`;
+  document.getElementById('d-rank-abbr').textContent=rank.abbr;
+  document.getElementById('d-rank-abbr2').textContent=rank.abbr;
+  document.getElementById('d-rank-name').textContent=rank.name;
+  document.getElementById('d-rank-fill').style.width=rpct+'%';
+  document.getElementById('d-lxp').textContent=lxp.toLocaleString();
+  document.getElementById('d-nxp').textContent=next?next.min.toLocaleString():'MAX';
+  document.getElementById('d-streak').textContent=streak;
+
+  let score,grade,color,msg;
+  if(pct===100){score='100';grade='MISSION COMPLETE — PERFECT';color='var(--grn)';msg='EVERY ACTIVITY DONE. FULL XP EARNED. HIGH-VALUE OPERATOR.';}
+  else if(pct>=80){score=pct+'%';grade='STRONG PERFORMANCE';color='var(--gold2)';msg='SOLID WORK TODAY. A FEW ACTIVITIES OUTSTANDING. PUSH HARDER TOMORROW.';}
+  else if(pct>=50){score=pct+'%';grade='PARTIAL COMPLETION';color='var(--txt)';msg='YOU\'VE GOT MORE IN THE TANK. GET BACK ON THE GRIND.';}
+  else if(pct>0){score=pct+'%';grade='BELOW STANDARD';color='var(--red)';msg='ROUGH DAY. TOMORROW IS A NEW MISSION.';}
+  else{score='0%';grade='NO XP EARNED';color='var(--red)';msg='NOTHING COMPLETED. THE MISSION WAITS FOR NO ONE.';}
+
+  document.getElementById('d-score').textContent=score;
+  document.getElementById('d-score').style.color=color;
+  document.getElementById('d-grade').textContent=grade;
+  document.getElementById('d-msg').textContent=msg;
+  document.getElementById('d-streak-desc').textContent=streak===0?'Complete all activities to start your streak.':
+    streak<7?`${streak} day${streak>1?'s':''} straight. Don't break it.`:
+    streak<30?`${streak} days. ELITE OPERATOR.`:`${streak} days. LEGENDARY STATUS.`;
+}
+
+/* ---- SOUND ---- */
+function playXP(){
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  [440,554,659,880].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);o.frequency.value=f;
+  g.gain.setValueAtTime(.18,ctx.currentTime+i*.07);
+  g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.07+.15);
+  o.start(ctx.currentTime+i*.07);o.stop(ctx.currentTime+i*.07+.15);});}catch(e){}
+}
+function playSuccess(){
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  [523,659,784,1047].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);o.frequency.value=f;
+  g.gain.setValueAtTime(.18,ctx.currentTime+i*.1);
+  g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.1+.2);
+  o.start(ctx.currentTime+i*.1);o.stop(ctx.currentTime+i*.1+.2);});}catch(e){}
+}
+
+/* ---- TOAST / FLASH ---- */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+function showXPFlash(msg){
+  const f=document.getElementById('xp-flash');
+  f.textContent=msg;f.classList.remove('show');
+  void f.offsetWidth;f.classList.add('show');
+}
+
+/* ---- WEATHER ---- */
+async function loadWeather(){
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=38.6553&longitude=-87.1717&current_weather=true&hourly=relativehumidity_2m,apparent_temperature,windspeed_10m&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America/Chicago');
+    const d=await r.json();const cw=d.current_weather;
+    const t=Math.round(cw.temperature);
+    document.getElementById('b-temp').innerHTML=t+'<sup>°F</sup>';
+    const codes={0:'CLEAR SKY',1:'MOSTLY CLEAR',2:'PARTLY CLOUDY',3:'OVERCAST',45:'FOGGY',51:'LIGHT DRIZZLE',61:'LIGHT RAIN',63:'MODERATE RAIN',71:'LIGHT SNOW',80:'RAIN SHOWERS',95:'THUNDERSTORM'};
+    document.getElementById('b-cond').textContent=codes[cw.weathercode]||'FIELD CONDITIONS';
+    document.getElementById('b-note').textContent=t>80?'HOT — HYDRATE, OPERATOR.':t>60?'GOOD FIELD CONDITIONS.':t>40?'COOL — LAYER UP.':'COLD — GEAR UP.';
+    const idx=new Date().getHours();
+    document.getElementById('b-fl').textContent=Math.round(d.hourly.apparent_temperature[idx])+'°';
+    document.getElementById('b-wnd').textContent=Math.round(cw.windspeed)+' MPH';
+    document.getElementById('b-hum').textContent=d.hourly.relativehumidity_2m[idx]+'%';
+  }catch(e){document.getElementById('b-cond').textContent='INTEL UNAVAILABLE';}
+}
+
+/* ---- GOOGLE SHEETS LOADER ---- */
+function parseCSV(text){
+  const lines=text.trim().split('\n');
+  const headers=lines[0].split(',').map(h=>h.trim().toLowerCase().replace(/"/g,''));
+  return lines.slice(1).filter(l=>l.trim()).map(line=>{
+    const vals=line.match(/(".*?"|[^,]+)(?=,|$)/g)||line.split(',');
+    const obj={};
+    headers.forEach((h,i)=>{obj[h]=(vals[i]||'').replace(/"/g,'').trim();});
+    // Support both old 'time' column and new 'start_time'/'end_time'
+    if(!obj.start_time&&obj.time) obj.start_time=obj.time;
+    if(!obj.end_time) obj.end_time='';
+    obj.time_sensitive=obj.time_sensitive==='yes'||obj.time_sensitive==='true'||obj.time_sensitive==='1';
+    obj.xp=parseInt(obj.xp||'0')||0;
+    return obj;
+  }).filter(r=>r.name);
+}
+
+async function loadActivities(){
+  if(SHEET_CSV_URL&&SHEET_CSV_URL!=='YOUR_GOOGLE_SHEET_CSV_URL_HERE'){
+    try{
+      const r=await fetch(SHEET_CSV_URL);
+      const text=await r.text();
+      ACTIVITIES=parseCSV(text);
+      return true;
+    }catch(e){
+      ACTIVITIES=FALLBACK_ACTIVITIES;
+      return false;
+    }
+  }
+  ACTIVITIES=FALLBACK_ACTIVITIES;
+  return false;
+}
+
+/* ---- SPLASH BOOT SEQUENCE ---- */
+const BOOT_LINES=[
+  {text:'LINCOLN OPS v2.0 — INITIALIZING...', delay:0, cls:'warn'},
+  {text:'Loading mission parameters...', delay:400, cls:''},
+  {text:'Connecting to activity feed...', delay:900, cls:''},
+  {text:'Syncing weather intel... <span>OK</span>', delay:1400, cls:'ok'},
+  {text:'Loading rank data... <span>OK</span>', delay:1700, cls:'ok'},
+  {text:'Activating XP system... <span>OK</span>', delay:2000, cls:'ok'},
+  {text:'Calibrating daily schedule...', delay:2400, cls:''},
+  {text:'All systems nominal. <span>READY.</span>', delay:3200, cls:'ok'},
+];
+
+async function runSplash(){
+  const log=document.getElementById('boot-log');
+  const bar=document.getElementById('boot-bar');
+  const pct=document.getElementById('boot-pct');
+  const total=BOOT_LINES.length;
+  let dataLoaded=false;
+
+  const dataPromise=loadActivities();
+
+  BOOT_LINES.forEach((line,i)=>{
+    setTimeout(()=>{
+      const div=document.createElement('div');
+      div.className=`boot-line ${line.cls}`;
+      div.innerHTML=line.text;
+      log.appendChild(div);
+      requestAnimationFrame(()=>div.style.opacity='1');
+      const p=Math.round(((i+1)/total)*100);
+      bar.style.width=p+'%';
+      pct.textContent=p+'%';
+    },line.delay);
+  });
+
+  await dataPromise;
+  dataLoaded=true;
+
+  const totalDelay=BOOT_LINES[BOOT_LINES.length-1].delay+600;
+  setTimeout(async()=>{
+    if(!dataLoaded) await dataPromise;
+    document.getElementById('splash').classList.add('splash-fadeout');
+    document.getElementById('app').classList.add('ready');
+    setClocks();
+    renderBrief();
+    loadWeather();
+    setInterval(setClocks,1000);
+    setInterval(()=>{
+      if(document.getElementById('s-mission').classList.contains('active')) renderMission();
+    },1000);
+    setTimeout(()=>{
+      document.getElementById('splash').style.display='none';
+    },600);
+  },totalDelay);
+}
+
+runSplash();
+</script>
+</body>
+</html>
