@@ -526,6 +526,10 @@ function buildBlocks(rows){
   let curBlock=null;let si=0;
   rows.forEach(row=>{
     if(!isActiveDay(row.days))return;
+    const blockVal=(row.block||'').trim();
+    const nameVal=(row.name||'').trim();
+    if(!blockVal&&!nameVal)return;
+    if(blockVal.startsWith('→')||blockVal.startsWith('->')||blockVal.startsWith('Fill'))return;
     row.xp=parseInt(row.xp||'0')||0;
     row.time_sensitive=row.time_sensitive==='yes';
     if(!row.start_time&&row.time)row.start_time=row.time;
@@ -559,7 +563,7 @@ function renderActivities(){
 
   const sl=document.getElementById('a-sched-list');sl.innerHTML='';
   let sc=0;
-  BLOCKS.forEach(b=>{
+  BLOCKS.filter(b=>b.block&&typeof b.schedIdx==='number').forEach(b=>{
     const color=CAT_COLOR[b.category]||CAT_COLOR.chore;
     const done=isSchedDone(b.schedIdx);
     const hdr=document.createElement('div');
