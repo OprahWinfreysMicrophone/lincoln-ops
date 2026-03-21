@@ -918,7 +918,7 @@ async function boot(){
   setTimeout(()=>{
     document.getElementById('splash').classList.add('sp-out');
     document.getElementById('app').classList.add('ready');
-    setClocks();renderBrief();loadWeather();
+    setClocks();renderBrief();renderActivities();loadWeather();
     setInterval(setClocks,1000);setInterval(updateUptime,1000);
     setInterval(()=>{
       if(document.getElementById('s-brief').classList.contains('active'))renderBrief();
