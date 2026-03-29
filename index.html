@@ -1273,9 +1273,9 @@ const BOOT_LINES=[
 
 function fetchWithTimeout(url,ms=8000){
   const isSheet=url.includes('docs.google.com');
-  const fetchUrl=isSheet?'https://api.allorigins.win/get?url='+encodeURIComponent(url):url;
+  const fetchUrl=isSheet?'https://corsproxy.io/?'+encodeURIComponent(url):url;
   return Promise.race([
-    fetch(fetchUrl).then(r=>r.json()).then(d=>isSheet?d.contents:d),
+    fetch(fetchUrl).then(r=>r.text()),
     new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))
   ]);
 }
