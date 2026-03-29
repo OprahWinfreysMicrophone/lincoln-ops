@@ -365,6 +365,66 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 .botbar{background:var(--bg2);border-top:1px solid var(--border2);padding:4px 14px;
   display:flex;align-items:center;justify-content:space-between;font-size:8px;color:var(--txt4);letter-spacing:.7px;flex-shrink:0;}
 .loading-msg{font-size:11px;color:var(--txt3);text-align:center;padding:16px;letter-spacing:1px;}
+
+/* ── PARENT ADMIN ── */
+.padm-tab{flex:1;padding:9px 4px;background:transparent;border:none;border-bottom:2px solid transparent;
+  color:var(--txt4);font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;cursor:pointer;white-space:nowrap;}
+.padm-tab.active{color:var(--gold2);border-bottom-color:var(--gold);}
+.adm-inp{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--txt);
+  font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px;outline:none;}
+.adm-inp:focus{border-color:var(--gold);}
+.adm-lbl{font-size:8px;color:var(--txt3);letter-spacing:1px;margin-bottom:3px;}
+.adm-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;
+  border-bottom:1px solid var(--border2);gap:8px;}
+.adm-row:last-child{border-bottom:none;}
+.adm-row-info{flex:1;min-width:0;}
+.adm-row-name{font-size:11px;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.adm-row-meta{font-size:9px;color:var(--txt3);margin-top:2px;}
+.adm-del{background:var(--reddim);border:1px solid var(--red);color:var(--red);
+  font-size:9px;padding:4px 8px;cursor:pointer;flex-shrink:0;font-family:'Share Tech Mono',monospace;}
+
+/* ── PARENT LOCK SCREEN ── */
+.parent-lock-wrap{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:80vh;padding:30px 20px;
+}
+.plk-emblem{
+  width:72px;height:72px;border:2px solid var(--gold);background:var(--goldfaint);
+  display:flex;align-items:center;justify-content:center;margin-bottom:18px;
+  position:relative;
+}
+.plk-emblem::before,.plk-emblem::after{content:'';position:absolute;width:9px;height:9px;border-color:var(--gold2);border-style:solid;}
+.plk-emblem::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.plk-emblem::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.plk-emblem-inner{font-size:28px;color:var(--gold2);}
+.plk-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:4px;margin-bottom:5px;}
+.plk-sub{font-size:8px;color:var(--txt3);letter-spacing:2px;margin-bottom:28px;}
+.plk-dots{display:flex;gap:14px;margin-bottom:10px;}
+.plk-dot{
+  width:18px;height:18px;border:2px solid var(--border);background:var(--bg2);
+  border-radius:50%;transition:all .15s;
+}
+.plk-dot.filled{background:var(--gold2);border-color:var(--gold2);box-shadow:0 0 10px var(--gold);}
+.plk-err{color:var(--red);font-size:9px;letter-spacing:1px;min-height:18px;margin-bottom:18px;text-align:center;}
+.plk-keypad{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  width:100%;max-width:280px;
+}
+.plk-key{
+  background:#1a1600;border:1px solid var(--gold);
+  color:var(--gold2);font-family:'Orbitron',sans-serif;
+  padding:0;height:64px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;transition:background .12s,box-shadow .12s;
+}
+.plk-key::before,.plk-key::after{content:'';position:absolute;width:5px;height:5px;border-color:var(--gold2);border-style:solid;opacity:.5;}
+.plk-key::before{top:0;left:0;border-width:1px 0 0 1px;}
+.plk-key::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.plk-key:active{background:#2e2600;box-shadow:0 0 14px var(--gold);border-color:var(--gold2);}
+.plk-num{font-size:22px;font-weight:700;line-height:1;}
+.plk-del{background:#1a0808;border-color:var(--red);color:var(--red);font-size:18px;}
+.plk-del:active{background:#300;box-shadow:0 0 14px var(--red);}
+.plk-key-empty{background:transparent;border:none;}
 </style>
 </head>
 <body>
@@ -622,6 +682,138 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
         <button class="btn-gold" onclick="nav('brief')">&#9675; &nbsp; NEW BRIEFING</button>
       </div>
 
+
+      <!-- PARENT ADMIN -->
+      <div class="screen" id="s-parent">
+        <div id="parent-lock" class="parent-lock-wrap">
+          <div class="plk-emblem">
+            <div class="plk-emblem-inner">&#9881;</div>
+          </div>
+          <div class="plk-title">PARENT ACCESS</div>
+          <div class="plk-sub">COMMAND OVERRIDE — ENTER PIN</div>
+          <div class="plk-dots">
+            <div class="plk-dot" id="ppd0"></div>
+            <div class="plk-dot" id="ppd1"></div>
+            <div class="plk-dot" id="ppd2"></div>
+            <div class="plk-dot" id="ppd3"></div>
+          </div>
+          <div id="parent-pin-err" class="plk-err"></div>
+          <div class="plk-keypad">
+            <button class="plk-key" onclick="parentPinKey('1')"><span class="plk-num">1</span></button>
+            <button class="plk-key" onclick="parentPinKey('2')"><span class="plk-num">2</span></button>
+            <button class="plk-key" onclick="parentPinKey('3')"><span class="plk-num">3</span></button>
+            <button class="plk-key" onclick="parentPinKey('4')"><span class="plk-num">4</span></button>
+            <button class="plk-key" onclick="parentPinKey('5')"><span class="plk-num">5</span></button>
+            <button class="plk-key" onclick="parentPinKey('6')"><span class="plk-num">6</span></button>
+            <button class="plk-key" onclick="parentPinKey('7')"><span class="plk-num">7</span></button>
+            <button class="plk-key" onclick="parentPinKey('8')"><span class="plk-num">8</span></button>
+            <button class="plk-key" onclick="parentPinKey('9')"><span class="plk-num">9</span></button>
+            <div class="plk-key-empty"></div>
+            <button class="plk-key" onclick="parentPinKey('0')"><span class="plk-num">0</span></button>
+            <button class="plk-key plk-del" onclick="parentPinClear()">&#9003;</button>
+          </div>
+        </div>
+
+        <div id="parent-panel" style="display:none;">
+          <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;">
+            <button class="padm-tab active" id="padm-tab-schedule" onclick="padmTab('schedule')">SCHEDULE</button>
+            <button class="padm-tab" id="padm-tab-school" onclick="padmTab('school')">SCHOOL</button>
+            <button class="padm-tab" id="padm-tab-rewards" onclick="padmTab('rewards')">REWARDS</button>
+            <button class="padm-tab" id="padm-tab-settings" onclick="padmTab('settings')">SETTINGS</button>
+          </div>
+
+          <!-- SCHEDULE -->
+          <div id="padm-content-schedule">
+            <div class="panel" style="margin-bottom:10px;">
+              <div class="ph">Add Schedule Block<div class="ph-line"></div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div style="grid-column:1/-1"><div class="adm-lbl">BLOCK NAME</div><input class="adm-inp" id="sb-block" placeholder="e.g. MORNING BLOCK"></div>
+                <div><div class="adm-lbl">CATEGORY</div><select class="adm-inp" id="sb-cat"><option value="wake">Wake</option><option value="school">School</option><option value="meal">Meal</option><option value="chore">Chore</option><option value="free">Free Time</option><option value="bed">Bed</option><option value="bath">Bath</option><option value="xbox">Xbox</option></select></div>
+                <div><div class="adm-lbl">XP</div><input class="adm-inp" id="sb-xp" placeholder="50" type="number"></div>
+                <div><div class="adm-lbl">START TIME</div><input class="adm-inp" id="sb-start" type="time"></div>
+                <div><div class="adm-lbl">END TIME</div><input class="adm-inp" id="sb-end" type="time"></div>
+                <div style="grid-column:1/-1"><div class="adm-lbl">DAYS (all / mon,tue,wed...)</div><input class="adm-inp" id="sb-days" placeholder="all"></div>
+              </div>
+              <button class="btn-gold" style="margin-top:4px;" onclick="admAddBlock()">+ ADD BLOCK</button>
+            </div>
+            <div class="panel" style="margin-bottom:10px;">
+              <div class="ph">Add Chore / Task<div class="ph-line"></div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div style="grid-column:1/-1"><div class="adm-lbl">TASK NAME</div><input class="adm-inp" id="ch-name" placeholder="e.g. Clean Room"></div>
+                <div><div class="adm-lbl">XP</div><input class="adm-inp" id="ch-xp" placeholder="25" type="number"></div>
+                <div><div class="adm-lbl">DAYS</div><input class="adm-inp" id="ch-days" placeholder="all"></div>
+              </div>
+              <button class="btn-gold" style="margin-top:4px;" onclick="admAddChore()">+ ADD CHORE</button>
+            </div>
+            <div class="panel">
+              <div class="ph">Schedule Blocks <div class="ph-line"></div><span class="ph-count" id="adm-block-count"></span></div>
+              <div id="adm-block-list"></div>
+              <div class="ph" style="margin-top:14px;">Chores <div class="ph-line"></div><span class="ph-count" id="adm-chore-count"></span></div>
+              <div id="adm-chore-list"></div>
+            </div>
+          </div>
+
+          <!-- SCHOOL -->
+          <div id="padm-content-school" style="display:none;">
+            <div class="panel" style="margin-bottom:10px;">
+              <div class="ph">Add Lesson<div class="ph-line"></div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div style="grid-column:1/-1"><div class="adm-lbl">LESSON NAME</div><input class="adm-inp" id="ls-name" placeholder="e.g. Khan Academy Math"></div>
+                <div style="grid-column:1/-1"><div class="adm-lbl">SUBJECT / GROUP</div><input class="adm-inp" id="ls-subject" placeholder="e.g. MATH BLOCK"></div>
+                <div><div class="adm-lbl">DURATION (MIN)</div><input class="adm-inp" id="ls-dur" placeholder="30" type="number"></div>
+                <div><div class="adm-lbl">XP</div><input class="adm-inp" id="ls-xp" placeholder="75" type="number"></div>
+                <div><div class="adm-lbl">DAYS</div><input class="adm-inp" id="ls-days" placeholder="all"></div>
+                <div><div class="adm-lbl">LINK (optional)</div><input class="adm-inp" id="ls-link" placeholder="https://..."></div>
+              </div>
+              <button class="btn-gold" style="margin-top:4px;" onclick="admAddLesson()">+ ADD LESSON</button>
+            </div>
+            <div class="panel">
+              <div class="ph">Lessons <div class="ph-line"></div><span class="ph-count" id="adm-lesson-count"></span></div>
+              <div id="adm-lesson-list"></div>
+            </div>
+          </div>
+
+          <!-- REWARDS -->
+          <div id="padm-content-rewards" style="display:none;">
+            <div class="panel" style="margin-bottom:10px;">
+              <div class="ph">Add Reward<div class="ph-line"></div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div style="grid-column:1/-1"><div class="adm-lbl">REWARD NAME</div><input class="adm-inp" id="rw-name" placeholder="e.g. Extra Xbox Time"></div>
+                <div style="grid-column:1/-1"><div class="adm-lbl">DESCRIPTION</div><input class="adm-inp" id="rw-desc" placeholder="e.g. 30 extra minutes"></div>
+                <div><div class="adm-lbl">COST (XP)</div><input class="adm-inp" id="rw-cost" placeholder="200" type="number"></div>
+                <div><div class="adm-lbl">ICON (emoji)</div><input class="adm-inp" id="rw-icon" placeholder="&#127918;"></div>
+              </div>
+              <button class="btn-gold" style="margin-top:4px;" onclick="admAddReward()">+ ADD REWARD</button>
+            </div>
+            <div class="panel">
+              <div class="ph">Rewards <div class="ph-line"></div><span class="ph-count" id="adm-reward-count"></span></div>
+              <div id="adm-reward-list"></div>
+            </div>
+          </div>
+
+          <!-- SETTINGS -->
+          <div id="padm-content-settings" style="display:none;">
+            <div class="panel" style="margin-bottom:10px;">
+              <div class="ph">Change PIN<div class="ph-line"></div></div>
+              <div style="margin-bottom:8px;"><div class="adm-lbl">NEW PIN (4 digits)</div><input class="adm-inp" id="new-pin" placeholder="1234" maxlength="4" type="tel"></div>
+              <button class="btn-gold" style="margin-top:4px;" onclick="admChangePin()">SAVE NEW PIN</button>
+            </div>
+            <div class="panel" style="margin-bottom:10px;">
+              <div class="ph">Reset Progress<div class="ph-line"></div></div>
+              <div style="font-size:10px;color:var(--txt3);margin-bottom:10px;">Clears all XP, streaks, and completed tasks. Keeps schedule and rewards.</div>
+              <button class="btn-red" onclick="admResetProgress()">RESET ALL PROGRESS</button>
+            </div>
+            <div class="panel">
+              <div class="ph">Factory Reset<div class="ph-line"></div></div>
+              <div style="font-size:10px;color:var(--txt3);margin-bottom:10px;">Wipes everything. All data, XP, schedule, rewards — full reset.</div>
+              <button class="btn-red" onclick="admClearAll()">FACTORY RESET</button>
+            </div>
+          </div>
+
+          <button class="btn-ghost" style="margin-top:16px;margin-bottom:8px;" onclick="parentLock()">&#128274; LOCK PARENT ACCESS</button>
+        </div>
+      </div>
+
     </div><!-- /content -->
   </div><!-- /main-layout -->
 
@@ -631,6 +823,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
     <button class="nb"        id="nb-activities" onclick="nav('activities')"> <span class="nb-icon">&#10003;</span>TASKS</button>
     <button class="nb"        id="nb-rewards"    onclick="nav('rewards')">    <span class="nb-icon">&#9733;</span>REWARDS</button>
     <button class="nb"        id="nb-debrief"    onclick="nav('debrief')">    <span class="nb-icon">&#9670;</span>DEBRIEF</button>
+    <button class="nb"        id="nb-parent"     onclick="nav('parent')">     <span class="nb-icon">&#9881;</span>PARENT</button>
   </div>
   <div class="botbar">
     <div><span class="blink">&#9632;</span> LINCOLN OPS v4.0</div>
@@ -790,7 +983,7 @@ function loadSchoolFallback(){
 }
 
 function nav(screen){
-  const screens=['brief','mission','school','activities','rewards','debrief'];
+  const screens=['brief','mission','school','activities','rewards','debrief','parent'];
   screens.forEach(s=>{
     const sc=document.getElementById('s-'+s);if(sc)sc.classList.remove('active');
     const nb=document.getElementById('nb-'+s);
@@ -799,9 +992,9 @@ function nav(screen){
   const sc=document.getElementById('s-'+screen);if(sc)sc.classList.add('active');
   const nb=document.getElementById('nb-'+screen);
   if(nb){if(screen==='school')nb.classList.add('school-active');else nb.classList.add('active');}
-  const titles={brief:'LINCOLN OPS',mission:"TODAY'S SCHEDULE",school:'SCHOOL MISSION',activities:'MISSION BOARD',rewards:'REWARDS DEPOT',debrief:'DAILY DEBRIEF'};
+  const titles={brief:'LINCOLN OPS',mission:"TODAY'S SCHEDULE",school:'SCHOOL MISSION',activities:'MISSION BOARD',rewards:'REWARDS DEPOT',debrief:'DAILY DEBRIEF',parent:'PARENT ADMIN'};
   document.getElementById('app-title').textContent=titles[screen]||'LINCOLN OPS';
-  const renders={brief:renderBrief,mission:renderMission,school:renderSchool,activities:renderActivities,rewards:renderRewards,debrief:renderDebrief};
+  const renders={brief:renderBrief,mission:renderMission,school:renderSchool,activities:renderActivities,rewards:renderRewards,debrief:renderDebrief,parent:()=>{if(!parentUnlocked){document.getElementById('parent-lock').style.display='block';document.getElementById('parent-panel').style.display='none';parentPinBuf='';updateParentDots();}}};
   if(renders[screen])renders[screen]();
 }
 
@@ -1302,27 +1495,227 @@ async function boot(){
     },line.delay);
   });
 
-  const safeF=url=>url?fetchWithTimeout(url).catch(e=>{console.error('Fetch failed:',url,e);return'';}) :Promise.resolve('');
-  try{
-    const[actText,rewText,schText]=await Promise.all([
-      safeF(SHEET_ACTIVITIES),
-      safeF(SHEET_REWARDS),
-      safeF(SHEET_SCHOOL),
-    ]);
-    console.log('Activities CSV length:',actText.length);
-    console.log('Rewards CSV length:',rewText.length);
-    console.log('School CSV length:',schText.length);
-    if(actText)buildBlocks(parseCSV(actText));
-    if(rewText)REWARDS_DATA=parseCSV(rewText);
-    if(schText)buildLessons(parseCSV(schText));
-    else loadSchoolFallback();
-    console.log('BLOCKS:',BLOCKS.length,'CHORES:',CHORES.length,'REWARDS:',REWARDS_DATA.length,'LESSONS:',LESSONS.length);
-  }catch(e){
-    console.warn('Boot data error:',e);
-    loadSchoolFallback();
-  }
+  // Load from local admin data (no sheets needed)
+  reloadFromAdmin();
+  if(!LESSONS.length)loadSchoolFallback();
 
   setTimeout(launchApp,3500);
+}
+
+// ── PARENT ADMIN ──
+let parentPinBuf='',parentUnlocked=false;
+
+function parentPinKey(k){
+  if(parentPinBuf.length>=4)return;
+  parentPinBuf+=k;updateParentDots();
+  if(parentPinBuf.length===4)setTimeout(checkParentPin,100);
+}
+function parentPinClear(){parentPinBuf=parentPinBuf.slice(0,-1);updateParentDots();}
+function updateParentDots(){for(let i=0;i<4;i++)document.getElementById('ppd'+i).classList.toggle('filled',i<parentPinBuf.length);}
+function checkParentPin(){
+  if(parentPinBuf===getPin()){
+    parentUnlocked=true;
+    document.getElementById('parent-lock').style.display='none';
+    document.getElementById('parent-panel').style.display='block';
+    admRenderAll();
+  }else{
+    document.getElementById('parent-pin-err').textContent='INCORRECT PIN — TRY AGAIN.';
+    parentPinBuf='';updateParentDots();
+  }
+}
+function parentLock(){
+  parentUnlocked=false;parentPinBuf='';
+  document.getElementById('parent-lock').style.display='block';
+  document.getElementById('parent-panel').style.display='none';
+  updateParentDots();
+  document.getElementById('parent-pin-err').textContent='';
+}
+
+function padmTab(t){
+  ['schedule','school','rewards','settings'].forEach(s=>{
+    document.getElementById('padm-tab-'+s).classList.toggle('active',s===t);
+    document.getElementById('padm-content-'+s).style.display=s===t?'block':'none';
+  });
+}
+
+// Storage keys for admin data
+const ADM_BLOCKS_KEY='v4_adm_blocks';
+const ADM_CHORES_KEY='v4_adm_chores';
+const ADM_LESSONS_KEY='v4_adm_lessons';
+const ADM_REWARDS_KEY='v4_adm_rewards';
+
+function admGetBlocks(){return S.get(ADM_BLOCKS_KEY,[]);}
+function admGetChores(){return S.get(ADM_CHORES_KEY,[]);}
+function admGetLessons(){return S.get(ADM_LESSONS_KEY,[]);}
+function admGetRewards(){return S.get(ADM_REWARDS_KEY,[]);}
+
+function admAddBlock(){
+  const block=document.getElementById('sb-block').value.trim();
+  if(!block){showToast('Block name required');return;}
+  const category=document.getElementById('sb-cat').value;
+  const xp=parseInt(document.getElementById('sb-xp').value)||0;
+  const start_time=document.getElementById('sb-start').value||'';
+  const end_time=document.getElementById('sb-end').value||'';
+  const days=document.getElementById('sb-days').value.trim()||'all';
+  const blocks=admGetBlocks();
+  blocks.push({id:Date.now(),block,category,xp,start_time,end_time,days});
+  S.set(ADM_BLOCKS_KEY,blocks);
+  document.getElementById('sb-block').value='';document.getElementById('sb-xp').value='';
+  document.getElementById('sb-start').value='';document.getElementById('sb-end').value='';
+  document.getElementById('sb-days').value='';
+  admRenderBlocks();reloadFromAdmin();showToast('Block added!');
+}
+
+function admAddChore(){
+  const name=document.getElementById('ch-name').value.trim();
+  if(!name){showToast('Task name required');return;}
+  const xp=parseInt(document.getElementById('ch-xp').value)||0;
+  const days=document.getElementById('ch-days').value.trim()||'all';
+  const chores=admGetChores();
+  chores.push({id:Date.now(),name,xp,days,category:'chore'});
+  S.set(ADM_CHORES_KEY,chores);
+  document.getElementById('ch-name').value='';document.getElementById('ch-xp').value='';document.getElementById('ch-days').value='';
+  admRenderChores();reloadFromAdmin();showToast('Chore added!');
+}
+
+function admAddLesson(){
+  const name=document.getElementById('ls-name').value.trim();
+  const subject=document.getElementById('ls-subject').value.trim()||'LESSONS';
+  if(!name){showToast('Lesson name required');return;}
+  const duration=parseInt(document.getElementById('ls-dur').value)||30;
+  const xp=parseInt(document.getElementById('ls-xp').value)||0;
+  const days=document.getElementById('ls-days').value.trim()||'all';
+  const link=document.getElementById('ls-link').value.trim();
+  const lessons=admGetLessons();
+  lessons.push({id:Date.now(),name,subject,duration,xp,days,link,category:'school'});
+  S.set(ADM_LESSONS_KEY,lessons);
+  document.getElementById('ls-name').value='';document.getElementById('ls-subject').value='';
+  document.getElementById('ls-dur').value='';document.getElementById('ls-xp').value='';
+  document.getElementById('ls-days').value='';document.getElementById('ls-link').value='';
+  admRenderLessons();reloadFromAdmin();showToast('Lesson added!');
+}
+
+function admAddReward(){
+  const name=document.getElementById('rw-name').value.trim();
+  if(!name){showToast('Reward name required');return;}
+  const desc=document.getElementById('rw-desc').value.trim();
+  const cost=parseInt(document.getElementById('rw-cost').value)||0;
+  const icon=document.getElementById('rw-icon').value.trim()||'★';
+  const rewards=admGetRewards();
+  const id='rw_'+Date.now();
+  rewards.push({id,name,desc,cost,icon,active:'yes'});
+  S.set(ADM_REWARDS_KEY,rewards);
+  document.getElementById('rw-name').value='';document.getElementById('rw-desc').value='';
+  document.getElementById('rw-cost').value='';document.getElementById('rw-icon').value='';
+  admRenderRewards();reloadFromAdmin();showToast('Reward added!');
+}
+
+function admDeleteBlock(id){const b=admGetBlocks().filter(x=>x.id!==id);S.set(ADM_BLOCKS_KEY,b);admRenderBlocks();reloadFromAdmin();}
+function admDeleteChore(id){const c=admGetChores().filter(x=>x.id!==id);S.set(ADM_CHORES_KEY,c);admRenderChores();reloadFromAdmin();}
+function admDeleteLesson(id){const l=admGetLessons().filter(x=>x.id!==id);S.set(ADM_LESSONS_KEY,l);admRenderLessons();reloadFromAdmin();}
+function admDeleteReward(id){const r=admGetRewards().filter(x=>x.id!==id);S.set(ADM_REWARDS_KEY,r);admRenderRewards();reloadFromAdmin();}
+
+function admRenderBlocks(){
+  const blocks=admGetBlocks();
+  const el=document.getElementById('adm-block-list');
+  document.getElementById('adm-block-count').textContent=blocks.length+' blocks';
+  if(!blocks.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No blocks yet.</div>';return;}
+  el.innerHTML='';
+  blocks.forEach(b=>{
+    const d=document.createElement('div');d.className='adm-row';
+    const timeStr=(b.start_time&&b.end_time)?b.start_time+' – '+b.end_time:b.start_time||'';
+    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+b.block+'</div><div class="adm-row-meta">'+b.category.toUpperCase()+(timeStr?' · '+timeStr:'')+(b.xp?' · '+b.xp+' XP':'')+(b.days&&b.days!=='all'?' · '+b.days:'')+'</div></div>'
+      +'<button class="adm-del" onclick="admDeleteBlock('+b.id+')">DEL</button>';
+    el.appendChild(d);
+  });
+}
+
+function admRenderChores(){
+  const chores=admGetChores();
+  const el=document.getElementById('adm-chore-list');
+  document.getElementById('adm-chore-count').textContent=chores.length+' chores';
+  if(!chores.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No chores yet.</div>';return;}
+  el.innerHTML='';
+  chores.forEach(c=>{
+    const d=document.createElement('div');d.className='adm-row';
+    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+c.name+'</div><div class="adm-row-meta">'+c.xp+' XP'+(c.days&&c.days!=='all'?' · '+c.days:'')+'</div></div>'
+      +'<button class="adm-del" onclick="admDeleteChore('+c.id+')">DEL</button>';
+    el.appendChild(d);
+  });
+}
+
+function admRenderLessons(){
+  const lessons=admGetLessons();
+  const el=document.getElementById('adm-lesson-list');
+  document.getElementById('adm-lesson-count').textContent=lessons.length+' lessons';
+  if(!lessons.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No lessons yet.</div>';return;}
+  el.innerHTML='';
+  lessons.forEach(l=>{
+    const d=document.createElement('div');d.className='adm-row';
+    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+l.name+'</div><div class="adm-row-meta">'+l.subject+' · '+l.duration+'min · '+l.xp+' XP'+(l.days&&l.days!=='all'?' · '+l.days:'')+'</div></div>'
+      +'<button class="adm-del" onclick="admDeleteLesson('+l.id+')">DEL</button>';
+    el.appendChild(d);
+  });
+}
+
+function admRenderRewards(){
+  const rewards=admGetRewards();
+  const el=document.getElementById('adm-reward-list');
+  document.getElementById('adm-reward-count').textContent=rewards.length+' rewards';
+  if(!rewards.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No rewards yet.</div>';return;}
+  el.innerHTML='';
+  rewards.forEach(r=>{
+    const d=document.createElement('div');d.className='adm-row';
+    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+(r.icon||'★')+' '+r.name+'</div><div class="adm-row-meta">'+r.cost+' XP'+(r.desc?' · '+r.desc:'')+'</div></div>'
+      +'<button class="adm-del" onclick="admDeleteReward(\'' + r.id + '\')">DEL</button>';
+    el.appendChild(d);
+  });
+}
+
+function admRenderAll(){admRenderBlocks();admRenderChores();admRenderLessons();admRenderRewards();}
+
+function reloadFromAdmin(){
+  // Rebuild BLOCKS and CHORES from admin data
+  BLOCKS=[];CHORES=[];
+  const savedBlocks=admGetBlocks();
+  let si=0;
+  savedBlocks.forEach(b=>{
+    if(!isActiveDay(b.days))return;
+    const block={block:b.block,category:b.category,start_time:b.start_time,end_time:b.end_time,xp:b.xp,schedIdx:si++,items:[]};
+    BLOCKS.push(block);
+  });
+  const savedChores=admGetChores();
+  savedChores.forEach(c=>{
+    if(!isActiveDay(c.days))return;
+    CHORES.push({name:c.name,xp:c.xp,days:c.days,category:'chore',id:c.id});
+  });
+  // Rebuild LESSONS
+  LESSONS=[];
+  admGetLessons().forEach(l=>{
+    if(!isActiveDay(l.days))return;
+    LESSONS.push({name:l.name,subject:l.subject,duration:l.duration,xp:l.xp,link:l.link,category:'school'});
+  });
+  // Rebuild REWARDS_DATA
+  REWARDS_DATA=admGetRewards();
+}
+
+function admChangePin(){
+  const p=document.getElementById('new-pin').value.trim();
+  if(p.length!==4||isNaN(p)){showToast('PIN must be exactly 4 digits');return;}
+  S.set('v4_pin',p);document.getElementById('new-pin').value='';showToast('PIN updated!');
+}
+
+function admResetProgress(){
+  if(!confirm('Reset all XP and progress? This cannot be undone.'))return;
+  ['v4_chore_xp','v4_spend','v4_spent','v4_streak','v4_unlocks'].forEach(k=>localStorage.removeItem(k));
+  // Remove daily keys
+  Object.keys(localStorage).filter(k=>k.startsWith('v4_school_xp')||k.startsWith('v4_chore_')||k.startsWith('v4_sched_')||k.startsWith('v4_sch_')).forEach(k=>localStorage.removeItem(k));
+  showToast('Progress reset!');nav('brief');
+}
+
+function admClearAll(){
+  if(!confirm('FACTORY RESET: Delete ALL data? This cannot be undone.'))return;
+  localStorage.clear();location.reload();
 }
 
 boot();
