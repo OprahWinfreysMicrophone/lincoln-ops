@@ -278,8 +278,6 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 .ci-xp{font-size:9px;color:var(--txt3);flex-shrink:0;}
 .chore-item.done .ci-xp{color:var(--grn);}
 
-
-
 /* ── REWARDS ── */
 .xp-balance{background:var(--golddim);border:1px solid var(--gold);padding:11px;
   display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
@@ -507,7 +505,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
           <div class="si-eye">— SCHOOL MISSION —</div>
           <div class="si-title">READY FOR SCHOOL?</div>
           <div class="si-sub" id="sh-lesson-count"></div>
-          <button class="btn-blue" style="max-width:280px;margin:0 auto;" onclick="requirePin('startschool')">&#9654; &nbsp; START SCHOOL</button>
+          <button class="btn-blue" style="max-width:280px;margin:0 auto;" onclick="startSchool()">&#9654; &nbsp; START SCHOOL</button>
         </div>
 
         <!-- ACTIVE -->
@@ -576,7 +574,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
         <button class="btn-ghost" onclick="requirePin('resetactivities')">&#8635; &nbsp; RESET ALL ACTIVITIES (PARENT)</button>
       </div>
 
-      <!-- REWARDS      <!-- REWARDS -->
+      <!-- REWARDS -->
       <div class="screen" id="s-rewards">
         <div class="xp-balance">
           <div><div class="xb-lbl">SPENDABLE XP</div><div class="xb-val" id="r-bal">0</div><div class="xb-sub">Earned from chores</div></div>
@@ -642,10 +640,9 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 </div><!-- /app -->
 
 <script>
-// ── SHEET URLS (from Lincoln OPS v3) ──
 const SHEET_ACTIVITIES='https://docs.google.com/spreadsheets/d/e/2PACX-1vR4dST5lBHLv42o5KkBwvdL94SeC0blUFIXj7v2FtkGx4dTE0f3PIgXJkg7RIgsTA/pub?gid=1710188706&single=true&output=csv';
 const SHEET_REWARDS   ='https://docs.google.com/spreadsheets/d/e/2PACX-1vR4dST5lBHLv42o5KkBwvdL94SeC0blUFIXj7v2FtkGx4dTE0f3PIgXJkg7RIgsTA/pub?gid=1148400832&single=true&output=csv';
-const SHEET_SCHOOL    =''; // ← paste your School tab CSV URL here
+const SHEET_SCHOOL    ='https://docs.google.com/spreadsheets/d/e/2PACX-1vR4dST5lBHLv42o5KkBwvdL94SeC0blUFIXj7v2FtkGx4dTE0f3PIgXJkg7RIgsTA/pub?gid=1206340291&single=true&output=csv';
 
 const DEFAULT_PIN='1234';
 const RANKS=[
@@ -663,7 +660,6 @@ const CAT_COLOR={wake:'#ff6b35',school:'#1d9e75',meal:'#7bc832',chore:'#c8a400',
 const CAT_BG   ={wake:'#1a0800',school:'#051a12',meal:'#0e1a00',chore:'#1a1600',free:'#1a1600',bed:'#050d1a',bath:'#120a1a',xbox:'#0a2018'};
 const DAY_KEYS =['sun','mon','tue','wed','thu','fri','sat'];
 
-// ── STORAGE ──
 const S={
   get:(k,d=null)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):d;}catch{return d;}},
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
@@ -671,7 +667,6 @@ const S={
 function todayStr(){const n=new Date();return n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate();}
 function todayKey(){return DAY_KEYS[new Date().getDay()];}
 
-// Chore XP (spendable for rewards)
 const getChoreXP    =()=>S.get('v4_chore_xp',0);
 const addChoreXP    =v=>{S.set('v4_chore_xp',getChoreXP()+v);};
 const getSpendable  =()=>S.get('v4_spend',0);
@@ -679,13 +674,11 @@ const addSpendable  =v=>{S.set('v4_spend',getSpendable()+v);};
 const getSpent      =()=>S.get('v4_spent',0);
 const setSpent      =v=>S.set('v4_spent',v);
 
-// School XP (separate pool)
 const getSchoolXPToday=()=>S.get('v4_school_xp_'+todayStr(),0);
 const addSchoolXPToday=v=>S.set('v4_school_xp_'+todayStr(),getSchoolXPToday()+v);
 const getSchoolXPTotal=()=>S.get('v4_school_xp_total',0);
 const addSchoolXPTotal=v=>S.set('v4_school_xp_total',getSchoolXPTotal()+v);
 
-// Combined rank XP = chore + school total
 const getTotalXP=()=>getChoreXP()+getSchoolXPTotal();
 
 const getStreak     =()=>S.get('v4_streak',0);
@@ -695,7 +688,6 @@ const schedKey      =i=>'v4_sched_'+i;
 const isSchedDone   =i=>S.get(schedKey(i),false);
 const getPin        =()=>S.get('v4_pin',DEFAULT_PIN);
 
-// School session
 const getSchoolStarted=()=>S.get('v4_sch_started_'+todayStr(),false);
 const setSchoolStarted=()=>S.set('v4_sch_started_'+todayStr(),true);
 const getSchoolCurIdx =()=>S.get('v4_sch_cur_'+todayStr(),-1);
@@ -703,7 +695,6 @@ const setSchoolCurIdx =v=>S.set('v4_sch_cur_'+todayStr(),v);
 const getSchoolDone   =i=>S.get('v4_sch_done_'+todayStr()+'_'+i,false);
 const setSchoolDone   =i=>S.set('v4_sch_done_'+todayStr()+'_'+i,true);
 
-// ── DATA ──
 let BLOCKS=[],CHORES=[],REWARDS_DATA=[],LESSONS=[];
 let schoolTimerInterval=null,schoolTimerSecs=0,schoolTimerTotal=0,schoolTimerAlerted=false;
 
@@ -798,7 +789,6 @@ function loadSchoolFallback(){
   ];
 }
 
-// ── NAV ──
 function nav(screen){
   const screens=['brief','mission','school','activities','rewards','debrief'];
   screens.forEach(s=>{
@@ -815,7 +805,6 @@ function nav(screen){
   if(renders[screen])renders[screen]();
 }
 
-// ── RANK ──
 function getRankData(){
   const total=getTotalXP();
   let r=RANKS[0],idx=0;
@@ -825,10 +814,8 @@ function getRankData(){
   return{rank:r,idx,total,next,pct};
 }
 
-// ── SIDEBAR UPDATE ──
 function updateSidebar(){}
 
-// ── BRIEF ──
 function renderBrief(){
   const h=new Date().getHours();
   document.getElementById('b-tod').textContent=h<12?'MORNING':h<17?'AFTERNOON':'EVENING';
@@ -887,7 +874,6 @@ function getNextBlock(){
   return BLOCKS.find(b=>{const sm=toMins(b.start_time);return sm!==null&&sm>totalMins;});
 }
 
-// ── MISSION ──
 function renderMission(){
   const now=new Date();const totalMins=now.getHours()*60+now.getMinutes();
   const cur=getCurrentBlock();const sched=document.getElementById('m-schedule');sched.innerHTML='';
@@ -920,8 +906,7 @@ function renderMission(){
   if(!bc)sched.innerHTML='<div class="loading-msg">No schedule data found.</div>';
 }
 
-// ── SCHOOL ──
-const NO_SCHOOL_MSGS = [
+const NO_SCHOOL_MSGS=[
   ['MISSION: REST','Recharge. Great soldiers rest as hard as they train.'],
   ['STAND DOWN','No lessons today. You earned a break, soldier.'],
   ['OFF DUTY','Base is closed. Go outside. Touch some grass.'],
@@ -930,14 +915,14 @@ const NO_SCHOOL_MSGS = [
 ];
 
 function renderSchool(){
-  const noday = LESSONS.length === 0;
-  const started = getSchoolStarted();
-  const allDone = !noday && LESSONS.every((_,i)=>getSchoolDone(i));
+  const noday=LESSONS.length===0;
+  const started=getSchoolStarted();
+  const allDone=!noday&&LESSONS.every((_,i)=>getSchoolDone(i));
 
-  document.getElementById('school-noday').style.display   = noday ? 'block' : 'none';
-  document.getElementById('school-idle').style.display    = (!noday && !started && !allDone) ? 'block' : 'none';
-  document.getElementById('school-active').style.display  = (!noday && started && !allDone) ? 'block' : 'none';
-  document.getElementById('school-complete').style.display= (!noday && allDone) ? 'block' : 'none';
+  document.getElementById('school-noday').style.display   =noday?'block':'none';
+  document.getElementById('school-idle').style.display    =(!noday&&!started&&!allDone)?'block':'none';
+  document.getElementById('school-active').style.display  =(!noday&&started&&!allDone)?'block':'none';
+  document.getElementById('school-complete').style.display=(!noday&&allDone)?'block':'none';
 
   if(noday){
     const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
@@ -949,20 +934,20 @@ function renderSchool(){
     return;
   }
 
-  if(!started && !allDone){
+  if(!started&&!allDone){
     const total=LESSONS.reduce((s,l)=>s+l.xp,0);
     document.getElementById('sh-lesson-count').textContent=LESSONS.length+' subjects · '+total+' XP available today';
     return;
   }
 
-  if(started && !allDone){
+  if(started&&!allDone){
     const curIdx=getSchoolCurIdx();
     renderLessonList();
-    if(curIdx>=0 && !getSchoolDone(curIdx)) reloadLessonDisplay(curIdx);
+    if(curIdx>=0&&!getSchoolDone(curIdx))reloadLessonDisplay(curIdx);
     else{
       let next=-1;
       for(let i=0;i<LESSONS.length;i++){if(!getSchoolDone(i)){next=i;break;}}
-      if(next>=0) loadLesson(next);
+      if(next>=0)loadLesson(next);
     }
   }
 
@@ -1032,7 +1017,7 @@ function loadLesson(idx){
   document.getElementById('sh-timer').classList.remove('warn');
   document.getElementById('sh-timer-lbl').textContent='TIME REMAINING';
   const btn=document.getElementById('sh-done-btn');
-    btn.textContent='DONE - NEXT SUBJECT';
+  btn.textContent='DONE - NEXT SUBJECT';
   btn.className='btn-blue';
   schoolTimerInterval=setInterval(tickSchoolTimer,1000);
   renderLessonList();
@@ -1063,15 +1048,15 @@ function updateSchoolTimer(){
   document.getElementById('sh-timer').textContent=fmtSecs(schoolTimerSecs);
 }
 
+// ── FIX: removed PIN requirement from startSchool, added renderSchool() call ──
 function startSchool(){
   setSchoolStarted();
   let first=-1;
   for(let i=0;i<LESSONS.length;i++){if(!getSchoolDone(i)){first=i;break;}}
   if(first>=0)loadLesson(first);
   document.getElementById('bot-msg').textContent='SCHOOL MISSION IN PROGRESS.';
+  renderSchool();
 }
-
-
 
 function schoolMarkDone(){
   clearInterval(schoolTimerInterval);
@@ -1108,7 +1093,6 @@ function resetSchool(){
   updateSidebar();renderSchool();showToast('SCHOOL RESET.');
 }
 
-// ── ACTIVITIES ──
 function doSchedItem(idx,xp){
   S.set(schedKey(idx),true);
   if(xp>0){addChoreXP(xp);addSpendable(xp);showXPFlash('+'+xp+' XP');playXP();}
@@ -1173,7 +1157,6 @@ function resetActivities(){
   updateSidebar();renderActivities();showToast('ALL ACTIVITIES RESET.');
 }
 
-// ── REWARDS ──
 function renderRewards(){
   const sp=getSpendable();
   document.getElementById('r-bal').textContent=sp.toLocaleString();
@@ -1190,6 +1173,7 @@ function renderRewards(){
   if(unlocks.length){up.style.display='block';ul.innerHTML='';unlocks.slice().reverse().forEach(u=>{const d=document.createElement('div');d.className='unlocked-item';d.innerHTML='<span>'+u.name+'</span><span class="ul-date">'+u.date+'</span>';ul.appendChild(d);});}
   else up.style.display='none';
 }
+
 function unlockReward(id,cost,name){
   const sp=getSpendable();if(sp<cost)return;
   S.set('v4_spend',sp-cost);setSpent(getSpent()+cost);
@@ -1197,7 +1181,6 @@ function unlockReward(id,cost,name){
   playSuccess();showToast('REWARD UNLOCKED: '+name);renderRewards();updateSidebar();
 }
 
-// ── DEBRIEF ──
 function renderDebrief(){
   const choreXP=getChoreXP();const schoolXP=getSchoolXPToday();
   const doneChores=CHORES.filter((_,i)=>isChoresDone(i)).length;
@@ -1223,7 +1206,6 @@ function renderDebrief(){
   document.getElementById('d-streak-desc').textContent=streak===0?'Complete all tasks to start your streak.':streak<7?streak+' day'+(streak>1?'s':'')+' in a row. Dont break it.':streak<30?streak+' days. ELITE OPERATOR.':streak+' days. LEGENDARY STATUS.';
 }
 
-// ── PIN SYSTEM ──
 let pinBuffer='',pinCallback=null;
 function requirePin(action){pinBuffer='';pinCallback=action;updatePinDots();document.getElementById('pin-err').textContent='';document.getElementById('pin-overlay').classList.add('show');}
 function pinKey(k){if(pinBuffer.length>=4)return;pinBuffer+=k;updatePinDots();if(pinBuffer.length===4)setTimeout(checkPin,100);}
@@ -1234,8 +1216,7 @@ function checkPin(){
   if(pinBuffer===getPin()){
     document.getElementById('pin-overlay').classList.remove('show');
     const action=pinCallback;pinBuffer='';pinCallback=null;
-    if(action==='startschool')startSchool();
-    else if(action==='skipschool')skipSchool();
+    if(action==='skipschool')skipSchool();
     else if(action==='resetschool')resetSchool();
     else if(action==='resetactivities')resetActivities();
   }else{
@@ -1244,17 +1225,14 @@ function checkPin(){
   }
 }
 
-// ── AUDIO ──
 function playXP(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[440,554,659,880].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.12,ctx.currentTime+i*.07);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.07+.15);o.start(ctx.currentTime+i*.07);o.stop(ctx.currentTime+i*.07+.2);});}catch(e){}}
 function playSuccess(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[523,659,784,1047].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.12,ctx.currentTime+i*.1);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.1+.2);o.start(ctx.currentTime+i*.1);o.stop(ctx.currentTime+i*.1+.25);});}catch(e){}}
 function playAlert(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[880,660,880,660].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.07,ctx.currentTime+i*.25);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.25+.2);o.start(ctx.currentTime+i*.25);o.stop(ctx.currentTime+i*.25+.25);});}catch(e){}}
 
-// ── UI HELPERS ──
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 function showXPFlash(msg){const f=document.getElementById('xp-flash');f.textContent=msg;f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 function flashScreen(){const f=document.getElementById('time-flash');f.classList.remove('show');void f.offsetWidth;f.classList.add('show');}
 
-// ── CLOCK ──
 function setClock(){
   const n=new Date(),h=n.getHours(),m=n.getMinutes();
   const h12=h%12||12,ap=h>=12?'PM':'AM';
@@ -1266,7 +1244,6 @@ function setClock(){
 let startTime=Date.now();
 function updateUptime(){const s=Math.floor((Date.now()-startTime)/1000);const el=document.getElementById('uptime-el');if(el)el.textContent='UP: '+String(Math.floor(s/3600)).padStart(2,'0')+':'+String(Math.floor((s%3600)/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
 
-// ── WEATHER ──
 async function loadWeather(){
   try{
     const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=38.6553&longitude=-87.1717&current_weather=true&hourly=relativehumidity_2m,apparent_temperature,windspeed_10m&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America/Chicago');
@@ -1282,7 +1259,6 @@ async function loadWeather(){
   }catch(e){document.getElementById('b-cond').textContent='UNAVAILABLE';}
 }
 
-// ── BOOT ──
 const BOOT_LINES=[
   {text:'LINCOLN OPS v4.0 — SYSTEM INIT',delay:0,cls:'warn'},
   {text:'Loading mission framework...',delay:300,cls:''},
@@ -1295,9 +1271,11 @@ const BOOT_LINES=[
   {text:'All systems nominal. <span>READY TO DEPLOY.</span>',delay:3000,cls:'ok'},
 ];
 
-function fetchWithTimeout(url,ms=5000){
+function fetchWithTimeout(url,ms=8000){
+  const isSheet=url.includes('docs.google.com');
+  const fetchUrl=isSheet?'https://api.allorigins.win/get?url='+encodeURIComponent(url):url;
   return Promise.race([
-    fetch(url).then(r=>r.text()),
+    fetch(fetchUrl).then(r=>r.json()).then(d=>isSheet?d.contents:d),
     new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))
   ]);
 }
@@ -1324,25 +1302,23 @@ async function boot(){
     },line.delay);
   });
 
-  // Load sheets with timeout — never block the boot
-  const safeF = url => url ? fetchWithTimeout(url).catch(()=>'') : Promise.resolve('');
+  const safeF=url=>url?fetchWithTimeout(url).catch(()=>''):Promise.resolve('');
   try{
-    const [actText,rewText,schText] = await Promise.all([
+    const[actText,rewText,schText]=await Promise.all([
       safeF(SHEET_ACTIVITIES),
       safeF(SHEET_REWARDS),
       safeF(SHEET_SCHOOL),
     ]);
-    if(actText) buildBlocks(parseCSV(actText));
-    if(rewText) REWARDS_DATA=parseCSV(rewText);
-    if(schText) buildLessons(parseCSV(schText));
+    if(actText)buildBlocks(parseCSV(actText));
+    if(rewText)REWARDS_DATA=parseCSV(rewText);
+    if(schText)buildLessons(parseCSV(schText));
     else loadSchoolFallback();
   }catch(e){
     console.warn('Boot data error:',e);
     loadSchoolFallback();
   }
 
-  // Always launch after animations complete
-  setTimeout(launchApp, 3500);
+  setTimeout(launchApp,3500);
 }
 
 boot();
