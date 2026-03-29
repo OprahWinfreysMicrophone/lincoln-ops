@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lincoln OPS">
-<title>Lincoln OPS</title>
+<meta name="apple-mobile-web-app-title" content="SHADOW OPS">
+<title>SHADOW OPS</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -32,14 +32,13 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 /* ── SPLASH ── */
 #splash{position:fixed;inset:0;background:#000;z-index:9990;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px;}
-.sp-logo{width:90px;height:90px;border:2px solid var(--gold);display:flex;align-items:center;
-  justify-content:center;position:relative;animation:logoIn .5s ease forwards;}
+.sp-logo{width:90px;height:90px;border:none;display:flex;align-items:center;
+  justify-content:center;position:relative;animation:logoIn .5s ease forwards;
+  filter:drop-shadow(0 0 18px rgba(200,164,0,.5));}
 @keyframes logoIn{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:scale(1);}}
-.sp-logo::before,.sp-logo::after{content:'';position:absolute;width:13px;height:13px;border-color:var(--gold2);border-style:solid;}
-.sp-logo::before{top:-2px;left:-2px;border-width:3px 0 0 3px;}
-.sp-logo::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;}
+.sp-logo::before,.sp-logo::after{display:none;}
 .sp-logo-txt{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--gold2);text-align:center;line-height:1.1;}
-.sp-title{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:#fff;letter-spacing:5px;opacity:0;animation:fadeUp .4s .4s ease forwards;}
+.sp-title{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:900;color:#fff;letter-spacing:8px;opacity:0;animation:fadeUp .4s .4s ease forwards;text-shadow:0 0 30px rgba(240,200,0,.5);}
 .sp-sub{font-size:10px;letter-spacing:3px;color:var(--txt3);opacity:0;animation:fadeUp .4s .6s ease forwards;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .boot-log{width:100%;max-width:500px;background:var(--bg2);border:1px solid var(--border);padding:14px;
@@ -386,18 +385,19 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 /* ── PARENT LOCK SCREEN ── */
 .parent-lock-wrap{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:80vh;padding:30px 20px;
+  min-height:80vh;padding:30px 20px;text-align:center;
+  background:radial-gradient(ellipse at 50% 40%, #1a1400 0%, #000 70%);
 }
 .plk-emblem{
-  width:72px;height:72px;border:2px solid var(--gold);background:var(--goldfaint);
-  display:flex;align-items:center;justify-content:center;margin-bottom:18px;
-  position:relative;
+  width:80px;height:80px;border:2px solid var(--gold);background:var(--goldfaint);
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+  position:relative;box-shadow:0 0 20px rgba(200,164,0,.2);
 }
 .plk-emblem::before,.plk-emblem::after{content:'';position:absolute;width:9px;height:9px;border-color:var(--gold2);border-style:solid;}
 .plk-emblem::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
 .plk-emblem::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
 .plk-emblem-inner{font-size:28px;color:var(--gold2);}
-.plk-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:4px;margin-bottom:5px;}
+.plk-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:5px;margin-bottom:6px;text-shadow:0 0 20px rgba(240,200,0,.4);}
 .plk-sub{font-size:8px;color:var(--txt3);letter-spacing:2px;margin-bottom:28px;}
 .plk-dots{display:flex;gap:14px;margin-bottom:10px;}
 .plk-dot{
@@ -462,12 +462,50 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 
 <!-- SPLASH -->
 <div id="splash">
-  <div class="sp-logo"><div class="sp-logo-txt">L<br>OPS</div></div>
-  <div class="sp-title">LINCOLN OPS</div>
-  <div class="sp-sub">DAILY MISSION SYSTEM — FIELD UNIT 001</div>
+    <div class="sp-logo">
+    <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+      <!-- corner brackets -->
+      <polyline points="2,2 14,2 2,14" fill="none" stroke="#f0c800" stroke-width="2.2"/>
+      <polyline points="88,2 76,2 88,14" fill="none" stroke="#f0c800" stroke-width="2.2"/>
+      <polyline points="2,88 14,88 2,76" fill="none" stroke="#f0c800" stroke-width="2.2"/>
+      <polyline points="88,88 76,88 88,76" fill="none" stroke="#f0c800" stroke-width="2.2"/>
+      <!-- skull dome - flat top, wider -->
+      <path d="M18 44 Q16 22 45 18 Q74 22 72 44 L70 56 Q62 62 45 63 Q28 62 20 56 Z" fill="#0e0c00" stroke="#c8a400" stroke-width="1.6"/>
+      <!-- brow ridge - heavy angular overhang -->
+      <path d="M18 38 Q20 30 45 28 Q70 30 72 38 L70 40 Q60 35 45 34 Q30 35 20 40 Z" fill="#1a1400" stroke="#c8a400" stroke-width="1"/>
+      <!-- left eye - angular hex shape, not round -->
+      <path d="M24 44 L27 39 L35 39 L38 44 L35 49 L27 49 Z" fill="#c8a400"/>
+      <path d="M26 44 L28.5 40.5 L33.5 40.5 L36 44 L33.5 47.5 L28.5 47.5 Z" fill="#000"/>
+      <!-- right eye - angular hex shape -->
+      <path d="M52 44 L55 39 L63 39 L66 44 L63 49 L55 49 Z" fill="#c8a400"/>
+      <path d="M54 44 L56.5 40.5 L61.5 40.5 L64 44 L61.5 47.5 L56.5 47.5 Z" fill="#000"/>
+      <!-- eye glow dots -->
+      <circle cx="31" cy="43" r="1.5" fill="#f0c800" opacity=".7"/>
+      <circle cx="59" cy="43" r="1.5" fill="#f0c800" opacity=".7"/>
+      <!-- nose cavity - inverted triangle, sharp -->
+      <path d="M42 52 L45 56 L48 52 L46 50 L44 50 Z" fill="#c8a400" opacity=".5"/>
+      <!-- cheekbones -->
+      <path d="M20 50 L24 54 L28 53" fill="none" stroke="#c8a400" stroke-width="1" opacity=".4"/>
+      <path d="M70 50 L66 54 L62 53" fill="none" stroke="#c8a400" stroke-width="1" opacity=".4"/>
+      <!-- jaw - angular lower face -->
+      <path d="M28 60 L27 56 L30 54 L60 54 L63 56 L62 60 L58 63 L32 63 Z" fill="#0e0c00" stroke="#c8a400" stroke-width="1.2"/>
+      <!-- teeth - sharp, uneven -->
+      <rect x="31" y="60" width="5" height="4" rx=".3" fill="#c8a400"/>
+      <rect x="38" y="61" width="4" height="3" rx=".3" fill="#c8a400"/>
+      <rect x="44" y="60" width="5" height="4" rx=".3" fill="#c8a400"/>
+      <rect x="51" y="61" width="4" height="3" rx=".3" fill="#c8a400"/>
+      <!-- crack on skull -->
+      <path d="M45 18 L43 26 L46 32 L44 38" fill="none" stroke="#c8a400" stroke-width=".8" opacity=".5"/>
+      <!-- crossed bones - sharp ends -->
+      <path d="M12 72 Q20 68 30 70 L60 74 Q70 76 78 72" fill="none" stroke="#c8a400" stroke-width="2" opacity=".4"/>
+      <path d="M78 70 Q70 68 60 70 L30 74 Q20 76 12 72" fill="none" stroke="#c8a400" stroke-width="2" opacity=".4"/>
+    </svg>
+  </div>
+  <div class="sp-title">SHADOW OPS</div>
+  <div class="sp-sub">CLASSIFIED MISSION SYSTEM · AGENT 001</div>
   <div class="boot-log" id="boot-log"></div>
   <div class="sp-bar-wrap">
-    <div class="sp-bar-lbl">SYSTEM INIT <span id="boot-pct">0%</span></div>
+    <div class="sp-bar-lbl">BOOT SEQUENCE <span id="boot-pct">0%</span></div>
     <div class="sp-bar-track"><div class="sp-bar-fill" id="boot-bar"></div></div>
   </div>
 </div>
@@ -476,8 +514,26 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 <div id="app">
   <div class="topbar">
     <div class="tb-l">
-      <div class="tb-emblem"><span class="tb-etxt">L<br>OPS</span></div>
-      <div><div class="tb-title" id="app-title">LINCOLN OPS</div><div class="tb-sub">DAILY MISSION SYSTEM</div></div>
+      <div class="tb-emblem">
+        <svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 13 Q4 6 13 5 Q22 6 21 13 L20 17 Q17 19 13 19 Q9 19 6 17 Z" fill="#0e0c00" stroke="#c8a400" stroke-width="1"/>
+          <path d="M5 11 Q6 8 13 7 Q20 8 21 11 L20 12 Q17 10 13 10 Q9 10 6 12 Z" fill="#1a1400"/>
+          <path d="M6 13 L7.5 11 L10.5 11 L12 13 L10.5 15 L7.5 15 Z" fill="#c8a400"/>
+          <path d="M7 13 L8.2 11.8 L10 11.8 L11 13 L10 14.2 L8.2 14.2 Z" fill="#000"/>
+          <path d="M14 13 L15.5 11 L18.5 11 L20 13 L18.5 15 L15.5 15 Z" fill="#c8a400"/>
+          <path d="M15 13 L16.2 11.8 L18 11.8 L19 13 L18 14.2 L16.2 14.2 Z" fill="#000"/>
+          <path d="M12 16 L13 17.5 L14 16 L13.5 15.2 L12.5 15.2 Z" fill="#c8a400" opacity=".5"/>
+          <path d="M8 18 L8 17 L9 16.5 L17 16.5 L18 17 L18 18 L16 19.5 L10 19.5 Z" fill="#0e0c00" stroke="#c8a400" stroke-width=".8"/>
+          <rect x="9" y="18" width="2" height="1.8" rx=".2" fill="#c8a400"/>
+          <rect x="12" y="18.3" width="2" height="1.5" rx=".2" fill="#c8a400"/>
+          <rect x="15" y="18" width="2" height="1.8" rx=".2" fill="#c8a400"/>
+          <polyline points="0,0 4,0 0,4" fill="none" stroke="#f0c800" stroke-width="1.2"/>
+          <polyline points="26,0 22,0 26,4" fill="none" stroke="#f0c800" stroke-width="1.2"/>
+          <polyline points="0,26 4,26 0,22" fill="none" stroke="#f0c800" stroke-width="1.2"/>
+          <polyline points="26,26 22,26 26,22" fill="none" stroke="#f0c800" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div><div class="tb-title" id="app-title">SHADOW OPS</div><div class="tb-sub">CLASSIFIED MISSION SYSTEM</div></div>
     </div>
     <div class="tb-r">
       <div class="live-pill"><div class="live-dot blink"></div>LIVE</div>
@@ -493,7 +549,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
       <div class="screen active" id="s-brief">
         <div class="brief-grid">
           <div class="greeting">
-            <div class="g-eye">— DAILY MISSION BRIEFING —</div>
+            <div class="g-eye">— CLASSIFIED BRIEFING —</div>
             <div class="g-name">GOOD <span id="b-tod">MORNING</span>,<br><span id="b-rank-greeting">PRIVATE LINCOLN.</span></div>
           </div>
           <div class="panel">
@@ -684,10 +740,25 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 
 
       <!-- PARENT ADMIN -->
-      <div class="screen" id="s-parent">
+      <div class="screen" id="s-parent" style="padding:0;min-height:calc(100vh - 120px);">
         <div id="parent-lock" class="parent-lock-wrap">
           <div class="plk-emblem">
-            <div class="plk-emblem-inner">&#9881;</div>
+            <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 21 Q7 10 22 8 Q37 10 36 21 L35 28 Q30 32 22 33 Q14 32 9 28 Z" fill="#0e0c00" stroke="#c8a400" stroke-width="1.5"/>
+              <path d="M8 18 Q10 12 22 11 Q34 12 36 18 L35 20 Q30 16 22 15 Q14 16 9 20 Z" fill="#1a1400" stroke="#c8a400" stroke-width=".7"/>
+              <path d="M10 21 L12.5 17.5 L17.5 17.5 L20 21 L17.5 24.5 L12.5 24.5 Z" fill="#c8a400"/>
+              <path d="M11.5 21 L13.5 18.5 L16.5 18.5 L18.5 21 L16.5 23.5 L13.5 23.5 Z" fill="#000"/>
+              <path d="M24 21 L26.5 17.5 L31.5 17.5 L34 21 L31.5 24.5 L26.5 24.5 Z" fill="#c8a400"/>
+              <path d="M25.5 21 L27.5 18.5 L30.5 18.5 L32.5 21 L30.5 23.5 L27.5 23.5 Z" fill="#000"/>
+              <circle cx="15" cy="20.5" r="1.2" fill="#f0c800" opacity=".7"/>
+              <circle cx="29" cy="20.5" r="1.2" fill="#f0c800" opacity=".7"/>
+              <path d="M20.5 27 L22 29.5 L23.5 27 L23 26 L21 26 Z" fill="#c8a400" opacity=".5"/>
+              <path d="M14 31 L13.5 28.5 L15 27.5 L29 27.5 L30.5 28.5 L30 31 L28 33 L16 33 Z" fill="#0e0c00" stroke="#c8a400" stroke-width="1"/>
+              <rect x="15.5" y="30" width="3" height="3" rx=".3" fill="#c8a400"/>
+              <rect x="20" y="30.5" width="2.5" height="2.5" rx=".3" fill="#c8a400"/>
+              <rect x="24" y="30" width="3" height="3" rx=".3" fill="#c8a400"/>
+              <path d="M22 8 L21 13 L22.5 17 L21.5 20" fill="none" stroke="#c8a400" stroke-width=".7" opacity=".4"/>
+            </svg>
           </div>
           <div class="plk-title">PARENT ACCESS</div>
           <div class="plk-sub">COMMAND OVERRIDE — ENTER PIN</div>
@@ -826,7 +897,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
     <button class="nb"        id="nb-parent"     onclick="nav('parent')">     <span class="nb-icon">&#9881;</span>PARENT</button>
   </div>
   <div class="botbar">
-    <div><span class="blink">&#9632;</span> LINCOLN OPS v4.0</div>
+    <div><span class="blink">&#9632;</span> SHADOW OPS v4.0</div>
     <div id="bot-msg">SYSTEM READY.</div>
     <div id="uptime-el">UP: 00:00:00</div>
   </div>
@@ -992,8 +1063,8 @@ function nav(screen){
   const sc=document.getElementById('s-'+screen);if(sc)sc.classList.add('active');
   const nb=document.getElementById('nb-'+screen);
   if(nb){if(screen==='school')nb.classList.add('school-active');else nb.classList.add('active');}
-  const titles={brief:'LINCOLN OPS',mission:"TODAY'S SCHEDULE",school:'SCHOOL MISSION',activities:'MISSION BOARD',rewards:'REWARDS DEPOT',debrief:'DAILY DEBRIEF',parent:'PARENT ADMIN'};
-  document.getElementById('app-title').textContent=titles[screen]||'LINCOLN OPS';
+  const titles={brief:'SHADOW OPS',mission:"TODAY'S SCHEDULE",school:'SCHOOL MISSION',activities:'MISSION BOARD',rewards:'REWARDS DEPOT',debrief:'DAILY DEBRIEF',parent:'PARENT ADMIN'};
+  document.getElementById('app-title').textContent=titles[screen]||'SHADOW OPS';
   const renders={brief:renderBrief,mission:renderMission,school:renderSchool,activities:renderActivities,rewards:renderRewards,debrief:renderDebrief,parent:()=>{if(!parentUnlocked){document.getElementById('parent-lock').style.display='block';document.getElementById('parent-panel').style.display='none';parentPinBuf='';updateParentDots();}}};
   if(renders[screen])renders[screen]();
 }
@@ -1453,15 +1524,15 @@ async function loadWeather(){
 }
 
 const BOOT_LINES=[
-  {text:'LINCOLN OPS v4.0 — SYSTEM INIT',delay:0,cls:'warn'},
-  {text:'Loading mission framework...',delay:300,cls:''},
-  {text:'Initializing schedule engine... <span>OK</span>',delay:700,cls:'ok'},
-  {text:'Connecting to activity feed... <span>OK</span>',delay:1100,cls:'ok'},
-  {text:'Loading school curriculum... <span>OK</span>',delay:1500,cls:'ok'},
-  {text:'Loading rewards manifest... <span>OK</span>',delay:2100,cls:'ok'},
-  {text:'Pulling weather intel... <span>OK</span>',delay:2400,cls:'ok'},
-  {text:'Dual XP system armed... <span>OK</span>',delay:2700,cls:'ok'},
-  {text:'All systems nominal. <span>READY TO DEPLOY.</span>',delay:3000,cls:'ok'},
+  {text:'SHADOW OPS v4.0 — BOOT SEQUENCE INITIATED',delay:0,cls:'warn'},
+  {text:'Decrypting mission framework...',delay:300,cls:''},
+  {text:'Initializing operator schedule... <span>LOCKED IN</span>',delay:700,cls:'ok'},
+  {text:'Loading daily objectives... <span>ARMED</span>',delay:1100,cls:'ok'},
+  {text:'Uploading intel packages... <span>READY</span>',delay:1500,cls:'ok'},
+  {text:'Arming rewards cache... <span>HOT</span>',delay:2100,cls:'ok'},
+  {text:'Scanning field conditions... <span>CLEAR</span>',delay:2400,cls:'ok'},
+  {text:'XP combat system online... <span>ONLINE</span>',delay:2700,cls:'ok'},
+  {text:'All systems go. <span>OPERATOR — MOVE OUT.</span>',delay:3000,cls:'ok'},
 ];
 
 function fetchWithTimeout(url,ms=8000){
