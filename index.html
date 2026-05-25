@@ -666,9 +666,11 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
                 <div class="un-dur" id="sh-un-dur">---</div>
               </div>
               <div class="school-xp-bar">
-                <div class="sxp-lbl">SCHOOL XP TODAY</div>
-                <div class="sxp-val" id="sh-xp-val">0</div>
-                <div class="sxp-max" id="sh-xp-max">/ 0 XP AVAILABLE</div>
+                <div class="sxp-lbl">LESSONS COMPLETE</div>
+                <div style="display:flex;align-items:baseline;gap:6px;">
+                  <div class="sxp-val" id="sh-xp-val">0</div>
+                  <div class="sxp-max" id="sh-xp-max">/ 0</div>
+                </div>
                 <div class="sxp-track"><div class="sxp-fill" id="sh-xp-fill" style="width:0%"></div></div>
               </div>
               <button class="btn-blue" id="sh-done-btn" onclick="schoolMarkDone()">&#10003; &nbsp; DONE — NEXT SUBJECT</button>
@@ -740,7 +742,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
         </div>
         <div class="stat-grid">
           <div class="stat-cell"><div class="stat-lbl">CHORE XP</div><div class="stat-val" id="d-chore-xp">0</div></div>
-          <div class="stat-cell"><div class="stat-lbl">SCHOOL XP</div><div class="stat-val" id="d-school-xp" style="color:var(--blue)">0</div></div>
+          <div class="stat-cell"><div class="stat-lbl">SCHOOL</div><div class="stat-val" id="d-school-xp" style="color:var(--blue)">0/0</div></div>
           <div class="stat-cell"><div class="stat-lbl">RANK</div><div class="stat-val" id="d-rank-abbr">PVT</div></div>
         </div>
         <div class="streak-card">
@@ -966,7 +968,7 @@ const addSchoolXPToday=v=>S.set('v4_school_xp_'+todayStr(),getSchoolXPToday()+v)
 const getSchoolXPTotal=()=>S.get('v4_school_xp_total',0);
 const addSchoolXPTotal=v=>S.set('v4_school_xp_total',getSchoolXPTotal()+v);
 
-const getTotalXP=()=>getChoreXP()+getSchoolXPTotal();
+const getTotalXP=()=>getChoreXP();
 
 const getStreak     =()=>S.get('v4_streak',0);
 const choreKey      =i=>'v4_chore_'+i;
@@ -1239,10 +1241,10 @@ function renderSchool(){
   }
 
   if(allDone){
-    const earned=LESSONS.reduce((s,l,i)=>s+(getSchoolDone(i)?l.xp:0),0);
-    const total=LESSONS.reduce((s,l)=>s+l.xp,0);
-    const pct=total>0?Math.round((earned/total)*100):0;
-    document.getElementById('sc-score').textContent=pct+'%';
+    const doneCt=LESSONS.filter((_,i)=>getSchoolDone(i)).length;
+    const total=LESSONS.length;
+    const pct=total>0?Math.round((doneCt/total)*100):0;
+    document.getElementById('sc-score').textContent=doneCt+'/'+total;
     document.getElementById('sc-msg').textContent=pct===100?'All subjects done. Outstanding academic performance, soldier.':pct>=80?'Strong school day. Almost perfect.':'School complete. Push harder tomorrow.';
     if(!S.get('v4_streak_school_'+todayStr(),false)){S.set('v4_streak',getStreak()+1);S.set('v4_streak_school_'+todayStr(),true);}
   }
@@ -1252,11 +1254,11 @@ function renderLessonList(){
   const list=document.getElementById('lesson-list');list.innerHTML='';
   const curIdx=getSchoolCurIdx();
   let done=0;
-  const total=LESSONS.reduce((s,l)=>s+l.xp,0);
-  const earned=LESSONS.reduce((s,l,i)=>s+(getSchoolDone(i)?l.xp:0),0);
-  const pct=total>0?Math.min(100,Math.round((earned/total)*100)):0;
-  document.getElementById('sh-xp-val').textContent=earned;
-  document.getElementById('sh-xp-max').textContent='/ '+total+' XP AVAILABLE';
+  LESSONS.forEach((_,i)=>{if(getSchoolDone(i))done++;});
+  const total=LESSONS.length;
+  const pct=total>0?Math.round((done/total)*100):0;
+  document.getElementById('sh-xp-val').textContent=done;
+  document.getElementById('sh-xp-max').textContent='/ '+total;
   document.getElementById('sh-xp-fill').style.width=pct+'%';
   LESSONS.forEach((l,i)=>{
     const isDone=getSchoolDone(i);const isCur=i===curIdx;
@@ -1349,13 +1351,7 @@ function schoolMarkDone(){
   clearInterval(schoolTimerInterval);
   const idx=getSchoolCurIdx();if(idx<0)return;
   const l=LESSONS[idx];setSchoolDone(idx);
-  if(l.xp>0){
-    addSchoolXPToday(l.xp);addSchoolXPTotal(l.xp);
-    const f=document.getElementById('xp-flash');
-    f.textContent='+'+l.xp+' SCHOOL XP';
-    f.classList.remove('show');void f.offsetWidth;f.classList.add('show');
-    playXP();
-  }
+  playXP();
   updateSidebar();
   const next=getNextLesson(idx);
   if(!next){clearInterval(schoolTimerInterval);renderSchool();}
@@ -1469,12 +1465,13 @@ function unlockReward(id,cost,name){
 }
 
 function renderDebrief(){
-  const choreXP=getChoreXP();const schoolXP=getSchoolXPToday();
+  const choreXP=getChoreXP();
+  const schoolDone=LESSONS.filter((_,i)=>getSchoolDone(i)).length;
   const doneChores=CHORES.filter((_,i)=>isChoresDone(i)).length;
   const pct=CHORES.length>0?Math.round((doneChores/CHORES.length)*100):0;
   const streak=getStreak();const{rank,total,next,pct:rpct}=getRankData();
   document.getElementById('d-chore-xp').textContent=choreXP;
-  document.getElementById('d-school-xp').textContent=schoolXP;
+  document.getElementById('d-school-xp').textContent=schoolDone+'/'+LESSONS.length;
   document.getElementById('d-rank-abbr').textContent=rank.abbr;
   document.getElementById('d-rank-abbr2').textContent=rank.abbr;
   document.getElementById('d-rank-name').textContent=rank.name;
@@ -1487,7 +1484,7 @@ function renderDebrief(){
   else if(pct>=80){score=pct+'%';grade='STRONG PERFORMANCE';color='var(--gold2)';msg='Solid day. A few tasks left. Push harder tomorrow.';}
   else if(pct>=50){score=pct+'%';grade='PARTIAL COMPLETION';color='var(--txt)';msg='You have got more in the tank. Get back on the grind.';}
   else if(pct>0){score=pct+'%';grade='BELOW STANDARD';color='var(--red)';msg='Rough day. Tomorrow is a fresh mission. Reset and go harder.';}
-  else{score='0%';grade='NO XP EARNED';color='var(--red)';msg='Nothing completed today. The mission does not complete itself.';}
+  else{score='0%';grade='NO TASKS DONE';color='var(--red)';msg='Nothing completed today. The mission does not complete itself.';}
   document.getElementById('d-score').textContent=score;document.getElementById('d-score').style.color=color;
   document.getElementById('d-grade').textContent=grade;document.getElementById('d-msg').textContent=msg;
   document.getElementById('d-streak-desc').textContent=streak===0?'Complete all tasks to start your streak.':streak<7?streak+' day'+(streak>1?'s':'')+' in a row. Dont break it.':streak<30?streak+' days. ELITE OPERATOR.':streak+' days. LEGENDARY STATUS.';
