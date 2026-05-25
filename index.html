@@ -391,6 +391,12 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 .padm-tab{flex:1;padding:12px 4px;background:transparent;border:none;border-bottom:2px solid transparent;
   color:var(--txt4);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;white-space:nowrap;}
 .padm-tab.active{color:var(--gold2);border-bottom-color:var(--gold);}
+.adm-edit{background:var(--goldfaint);border:1px solid var(--gold);color:var(--gold2);
+  font-size:9px;padding:4px 8px;cursor:pointer;flex-shrink:0;font-family:'Share Tech Mono',monospace;margin-right:4px;}
+.adm-edit:hover{background:#261f00;}
+.adm-editing-indicator{font-size:9px;color:var(--gold2);letter-spacing:1px;padding:4px 0 8px;display:none;}
+.lesson-item:not(.done){cursor:pointer;}
+.lesson-item:not(.done):not(.current):hover{border-color:var(--blue);background:rgba(68,136,204,.08);}
 .adm-inp{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--txt);
   font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px;outline:none;}
 .adm-inp:focus{border-color:var(--gold);}
@@ -652,20 +658,20 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
           <div class="school-layout">
             <div>
               <div class="school-hero">
-                <div class="sh-eye"><div class="sh-pulse"></div><span id="sh-progress-eye">LESSON 1 OF 1</span></div>
-                <div class="sh-subject" id="sh-subject">---</div>
+                <div class="sh-eye"><div class="sh-pulse"></div><span id="sh-progress-eye">TAP A LESSON TO BEGIN</span></div>
+                <div class="sh-subject" id="sh-subject" style="opacity:.4;">SELECT LESSON</div>
                 <div class="sh-desc" id="sh-desc"></div>
-                <div class="sh-timer" id="sh-timer">00:00</div>
-                <div class="sh-timer-lbl" id="sh-timer-lbl">TIME REMAINING</div>
+                <div class="sh-timer" id="sh-timer" style="opacity:.4;">--:--</div>
+                <div class="sh-timer-lbl" id="sh-timer-lbl">STANDING BY</div>
                 <div class="sh-track"><div class="sh-fill" id="sh-fill" style="width:0%"></div></div>
                 <div class="sh-link" id="sh-link"></div>
               </div>
-              <div class="school-up-next" id="school-up-next">
-                <div class="un-lbl">UP NEXT</div>
-                <div class="un-name" id="sh-un-name">---</div>
-                <div class="un-dur" id="sh-un-dur">---</div>
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                <button class="btn-gold" id="sh-pause-btn" onclick="pauseResumeSchool()" style="flex:1;display:none;">&#9646;&#9646; PAUSE</button>
+                <button class="btn-blue" id="sh-done-btn" onclick="schoolMarkDone()" style="flex:1;display:none;">&#10003; COMPLETE</button>
               </div>
-              <div class="school-xp-bar">
+              <button class="btn-ghost" id="sh-skip-btn" onclick="requirePin('skipschool')" style="display:none;">&#10230; SKIP LESSON (PARENT)</button>
+              <div class="school-xp-bar" style="margin-top:12px;">
                 <div class="sxp-lbl">LESSONS COMPLETE</div>
                 <div style="display:flex;align-items:baseline;gap:6px;">
                   <div class="sxp-val" id="sh-xp-val">0</div>
@@ -673,8 +679,6 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
                 </div>
                 <div class="sxp-track"><div class="sxp-fill" id="sh-xp-fill" style="width:0%"></div></div>
               </div>
-              <button class="btn-blue" id="sh-done-btn" onclick="schoolMarkDone()">&#10003; &nbsp; DONE — NEXT SUBJECT</button>
-              <button class="btn-ghost" onclick="requirePin('skipschool')">&#10230; &nbsp; SKIP (PARENT)</button>
             </div>
             <div>
               <div class="panel blue-panel">
@@ -824,13 +828,13 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
               <div class="ph">Add Schedule Block<div class="ph-line"></div></div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
                 <div style="grid-column:1/-1"><div class="adm-lbl">BLOCK NAME</div><input class="adm-inp" id="sb-block" placeholder="e.g. MORNING BLOCK"></div>
-                <div><div class="adm-lbl">CATEGORY</div><select class="adm-inp" id="sb-cat"><option value="wake">Wake</option><option value="school">School</option><option value="meal">Meal</option><option value="chore">Chore</option><option value="free">Free Time</option><option value="bed">Bed</option><option value="bath">Bath</option><option value="xbox">Xbox</option></select></div>
                 <div><div class="adm-lbl">XP</div><input class="adm-inp" id="sb-xp" placeholder="50" type="number"></div>
                 <div><div class="adm-lbl">START TIME</div><input class="adm-inp" id="sb-start" type="time"></div>
                 <div><div class="adm-lbl">END TIME</div><input class="adm-inp" id="sb-end" type="time"></div>
                 <div style="grid-column:1/-1"><div class="adm-lbl">DAYS (all / mon,tue,wed...)</div><input class="adm-inp" id="sb-days" placeholder="all"></div>
               </div>
-              <button class="btn-gold" style="margin-top:4px;" onclick="admAddBlock()">+ ADD BLOCK</button>
+              <div class="adm-editing-indicator" id="adm-block-edit-lbl">&#9998; EDITING BLOCK — SAVE TO UPDATE</div>
+              <button class="btn-gold" id="adm-block-save-btn" style="margin-top:4px;" onclick="admAddBlock()">+ ADD BLOCK</button>
             </div>
             <div class="panel" style="margin-bottom:10px;">
               <div class="ph">Add Chore / Task<div class="ph-line"></div></div>
@@ -839,7 +843,8 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
                 <div><div class="adm-lbl">XP</div><input class="adm-inp" id="ch-xp" placeholder="25" type="number"></div>
                 <div><div class="adm-lbl">DAYS</div><input class="adm-inp" id="ch-days" placeholder="all"></div>
               </div>
-              <button class="btn-gold" style="margin-top:4px;" onclick="admAddChore()">+ ADD CHORE</button>
+              <div class="adm-editing-indicator" id="adm-chore-edit-lbl">&#9998; EDITING TASK — SAVE TO UPDATE</div>
+              <button class="btn-gold" id="adm-chore-save-btn" style="margin-top:4px;" onclick="admAddChore()">+ ADD CHORE</button>
             </div>
             <div class="panel">
               <div class="ph">Schedule Blocks <div class="ph-line"></div><span class="ph-count" id="adm-block-count"></span></div>
@@ -857,11 +862,11 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
                 <div style="grid-column:1/-1"><div class="adm-lbl">LESSON NAME</div><input class="adm-inp" id="ls-name" placeholder="e.g. Khan Academy Math"></div>
                 <div style="grid-column:1/-1"><div class="adm-lbl">SUBJECT / GROUP</div><input class="adm-inp" id="ls-subject" placeholder="e.g. MATH BLOCK"></div>
                 <div><div class="adm-lbl">DURATION (MIN)</div><input class="adm-inp" id="ls-dur" placeholder="30" type="number"></div>
-                <div><div class="adm-lbl">XP</div><input class="adm-inp" id="ls-xp" placeholder="75" type="number"></div>
                 <div><div class="adm-lbl">DAYS</div><input class="adm-inp" id="ls-days" placeholder="all"></div>
-                <div><div class="adm-lbl">LINK (optional)</div><input class="adm-inp" id="ls-link" placeholder="https://..."></div>
+                <div style="grid-column:1/-1"><div class="adm-lbl">LINK (optional)</div><input class="adm-inp" id="ls-link" placeholder="https://..."></div>
               </div>
-              <button class="btn-gold" style="margin-top:4px;" onclick="admAddLesson()">+ ADD LESSON</button>
+              <div class="adm-editing-indicator" id="adm-lesson-edit-lbl">&#9998; EDITING LESSON — SAVE TO UPDATE</div>
+              <button class="btn-gold" id="adm-lesson-save-btn" style="margin-top:4px;" onclick="admAddLesson()">+ ADD LESSON</button>
             </div>
             <div class="panel">
               <div class="ph">Lessons <div class="ph-line"></div><span class="ph-count" id="adm-lesson-count"></span></div>
@@ -879,7 +884,8 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
                 <div><div class="adm-lbl">COST (XP)</div><input class="adm-inp" id="rw-cost" placeholder="200" type="number"></div>
                 <div><div class="adm-lbl">ICON (emoji)</div><input class="adm-inp" id="rw-icon" placeholder="&#127918;"></div>
               </div>
-              <button class="btn-gold" style="margin-top:4px;" onclick="admAddReward()">+ ADD REWARD</button>
+              <div class="adm-editing-indicator" id="adm-reward-edit-lbl">&#9998; EDITING REWARD — SAVE TO UPDATE</div>
+              <button class="btn-gold" id="adm-reward-save-btn" style="margin-top:4px;" onclick="admAddReward()">+ ADD REWARD</button>
             </div>
             <div class="panel">
               <div class="ph">Rewards <div class="ph-line"></div><span class="ph-count" id="adm-reward-count"></span></div>
@@ -985,7 +991,8 @@ const getSchoolDone   =i=>S.get('v4_sch_done_'+todayStr()+'_'+i,false);
 const setSchoolDone   =i=>S.set('v4_sch_done_'+todayStr()+'_'+i,true);
 
 let BLOCKS=[],CHORES=[],REWARDS_DATA=[],LESSONS=[];
-let schoolTimerInterval=null,schoolTimerSecs=0,schoolTimerTotal=0,schoolTimerAlerted=false;
+let schoolTimerInterval=null,schoolTimerSecs=0,schoolTimerTotal=0,schoolTimerAlerted=false,schoolTimerPaused=false;
+let admEditId={block:null,chore:null,lesson:null,reward:null};
 
 function toMins(t){if(!t||t===''||t==='none')return null;const p=t.split(':');if(p.length<2)return null;const h=parseInt(p[0]),m=parseInt(p[1]);if(isNaN(h)||isNaN(m))return null;return h*60+m;}
 function fmtMins(m){const h=Math.floor(Math.max(0,m)/60),mn=Math.max(0,m)%60;return String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0');}
@@ -1224,20 +1231,14 @@ function renderSchool(){
   }
 
   if(!started&&!allDone){
-    const total=LESSONS.reduce((s,l)=>s+l.xp,0);
-    document.getElementById('sh-lesson-count').textContent=LESSONS.length+' subjects · '+total+' XP available today';
+    document.getElementById('sh-lesson-count').textContent=LESSONS.length+' subjects today — tap any to begin';
     return;
   }
 
   if(started&&!allDone){
-    const curIdx=getSchoolCurIdx();
     renderLessonList();
+    const curIdx=getSchoolCurIdx();
     if(curIdx>=0&&!getSchoolDone(curIdx))reloadLessonDisplay(curIdx);
-    else{
-      let next=-1;
-      for(let i=0;i<LESSONS.length;i++){if(!getSchoolDone(i)){next=i;break;}}
-      if(next>=0)loadLesson(next);
-    }
   }
 
   if(allDone){
@@ -1260,33 +1261,25 @@ function renderLessonList(){
   document.getElementById('sh-xp-val').textContent=done;
   document.getElementById('sh-xp-max').textContent='/ '+total;
   document.getElementById('sh-xp-fill').style.width=pct+'%';
+  document.getElementById('sh-progress').textContent=done+'/'+total;
   LESSONS.forEach((l,i)=>{
     const isDone=getSchoolDone(i);const isCur=i===curIdx;
-    if(isDone)done++;
     const div=document.createElement('div');
     div.className='lesson-item'+(isCur?' current':'')+(isDone?' done':'');
     div.style.borderLeftColor='#1d9e75';
-    div.innerHTML='<div class="li-num">'+(i+1)+'</div><div class="li-dot" style="background:#1d9e75"></div><span class="li-name">'+l.name+'</span><span class="li-dur">'+l.duration+' MIN</span>'+(isCur?'<span class="li-tag li-now">NOW</span>':'')+(isDone?'<span class="li-tag li-done-tag">DONE</span>':'');
+    if(!isDone)div.onclick=()=>selectLesson(i);
+    div.innerHTML='<div class="li-num">'+(i+1)+'</div><div class="li-dot" style="background:#1d9e75"></div><span class="li-name">'+l.name+'</span><span class="li-dur">'+l.duration+' MIN</span>'+(isCur?'<span class="li-tag li-now">&#9654;</span>':'')+(isDone?'<span class="li-tag li-done-tag">DONE</span>':'');
     list.appendChild(div);
   });
-  document.getElementById('sh-progress').textContent=done+'/'+LESSONS.length;
-  document.getElementById('sh-progress-eye').textContent='LESSON '+(done+1)+' OF '+LESSONS.length;
 }
 
 function reloadLessonDisplay(idx){
   const l=LESSONS[idx];
   document.getElementById('sh-subject').textContent=l.name;
+  document.getElementById('sh-subject').style.opacity='1';
   document.getElementById('sh-desc').textContent=(l.subject&&l.subject!==l.name)?l.subject:'';
   const lb=document.getElementById('sh-link');
   lb.innerHTML=l.link?'<a href="'+l.link+'" target="_blank">&#9654; OPEN LESSON LINK</a>':'';
-  const next=getNextLesson(idx);
-  if(next){
-    document.getElementById('sh-un-name').textContent=next.name;
-    document.getElementById('sh-un-dur').textContent=next.duration+' MIN';
-    document.getElementById('school-up-next').style.display='block';
-  }else{
-    document.getElementById('school-up-next').style.display='none';
-  }
 }
 
 function getNextLesson(idx){
@@ -1298,18 +1291,44 @@ function loadLesson(idx){
   if(idx>=LESSONS.length){renderSchool();return;}
   const l=LESSONS[idx];setSchoolCurIdx(idx);
   clearInterval(schoolTimerInterval);
+  schoolTimerPaused=false;
   schoolTimerSecs=l.duration*60;schoolTimerTotal=schoolTimerSecs;schoolTimerAlerted=false;
   reloadLessonDisplay(idx);
   updateSchoolTimer();
+  document.getElementById('sh-timer').style.opacity='1';
   document.getElementById('sh-fill').style.width='0%';
   document.getElementById('sh-fill').classList.remove('warn');
   document.getElementById('sh-timer').classList.remove('warn');
   document.getElementById('sh-timer-lbl').textContent='TIME REMAINING';
-  const btn=document.getElementById('sh-done-btn');
-  btn.textContent='DONE - NEXT SUBJECT';
-  btn.className='btn-blue';
+  document.getElementById('sh-progress-eye').textContent=l.name.toUpperCase();
+  const pauseBtn=document.getElementById('sh-pause-btn');
+  pauseBtn.style.display='';pauseBtn.innerHTML='&#9646;&#9646; PAUSE';pauseBtn.className='btn-gold';
+  const doneBtn=document.getElementById('sh-done-btn');
+  doneBtn.style.display='';doneBtn.innerHTML='&#10003; COMPLETE';doneBtn.className='btn-blue';
+  document.getElementById('sh-skip-btn').style.display='';
   schoolTimerInterval=setInterval(tickSchoolTimer,1000);
   renderLessonList();
+}
+
+function selectLesson(idx){
+  if(getSchoolDone(idx))return;
+  clearInterval(schoolTimerInterval);
+  loadLesson(idx);
+}
+
+function pauseResumeSchool(){
+  const btn=document.getElementById('sh-pause-btn');
+  if(!schoolTimerPaused){
+    schoolTimerPaused=true;
+    clearInterval(schoolTimerInterval);
+    btn.innerHTML='&#9654; RESUME';btn.className='btn-blue';
+    document.getElementById('sh-timer-lbl').textContent='PAUSED';
+  }else{
+    schoolTimerPaused=false;
+    btn.innerHTML='&#9646;&#9646; PAUSE';btn.className='btn-gold';
+    document.getElementById('sh-timer-lbl').textContent='TIME REMAINING';
+    schoolTimerInterval=setInterval(tickSchoolTimer,1000);
+  }
 }
 
 function tickSchoolTimer(){
@@ -1337,12 +1356,8 @@ function updateSchoolTimer(){
   document.getElementById('sh-timer').textContent=fmtSecs(schoolTimerSecs);
 }
 
-// ── FIX: removed PIN requirement from startSchool, added renderSchool() call ──
 function startSchool(){
   setSchoolStarted();
-  let first=-1;
-  for(let i=0;i<LESSONS.length;i++){if(!getSchoolDone(i)){first=i;break;}}
-  if(first>=0)loadLesson(first);
   document.getElementById('bot-msg').textContent='SCHOOL MISSION IN PROGRESS.';
   renderSchool();
 }
@@ -1350,21 +1365,31 @@ function startSchool(){
 function schoolMarkDone(){
   clearInterval(schoolTimerInterval);
   const idx=getSchoolCurIdx();if(idx<0)return;
-  const l=LESSONS[idx];setSchoolDone(idx);
-  playXP();
-  updateSidebar();
-  const next=getNextLesson(idx);
-  if(!next){clearInterval(schoolTimerInterval);renderSchool();}
-  else loadLesson(LESSONS.indexOf(next));
+  setSchoolDone(idx);setSchoolCurIdx(-1);schoolTimerPaused=false;
+  playXP();resetSchoolHeroDisplay();updateSidebar();renderSchool();
+}
+
+function resetSchoolHeroDisplay(){
+  document.getElementById('sh-done-btn').style.display='none';
+  document.getElementById('sh-pause-btn').style.display='none';
+  document.getElementById('sh-skip-btn').style.display='none';
+  document.getElementById('sh-subject').textContent='SELECT LESSON';
+  document.getElementById('sh-subject').style.opacity='.4';
+  document.getElementById('sh-timer').textContent='--:--';
+  document.getElementById('sh-timer').style.opacity='.4';
+  document.getElementById('sh-timer-lbl').textContent='STANDING BY';
+  document.getElementById('sh-progress-eye').textContent='TAP A LESSON TO BEGIN';
+  document.getElementById('sh-fill').style.width='0%';
+  document.getElementById('sh-desc').textContent='';
+  document.getElementById('sh-link').innerHTML='';
 }
 
 function skipSchool(){
-  const idx=getSchoolCurIdx();
   clearInterval(schoolTimerInterval);
-  const next=getNextLesson(idx);
-  if(!next){renderSchool();return;}
-  loadLesson(LESSONS.indexOf(next));
+  setSchoolCurIdx(-1);schoolTimerPaused=false;
+  resetSchoolHeroDisplay();
   showToast('LESSON SKIPPED.');
+  renderSchool();
 }
 
 function resetSchool(){
@@ -1642,18 +1667,19 @@ function admGetRewards(){return S.get(ADM_REWARDS_KEY,[]);}
 function admAddBlock(){
   const block=document.getElementById('sb-block').value.trim();
   if(!block){showToast('Block name required');return;}
-  const category=document.getElementById('sb-cat').value;
   const xp=parseInt(document.getElementById('sb-xp').value)||0;
   const start_time=document.getElementById('sb-start').value||'';
   const end_time=document.getElementById('sb-end').value||'';
   const days=document.getElementById('sb-days').value.trim()||'all';
   const blocks=admGetBlocks();
-  blocks.push({id:Date.now(),block,category,xp,start_time,end_time,days});
+  const isEdit=admEditId.block!==null;
+  if(isEdit){const idx=blocks.findIndex(x=>x.id===admEditId.block);if(idx>=0)Object.assign(blocks[idx],{block,xp,start_time,end_time,days});admEditId.block=null;document.getElementById('adm-block-save-btn').textContent='+ ADD BLOCK';document.getElementById('adm-block-edit-lbl').style.display='none';}
+  else blocks.push({id:Date.now(),block,xp,start_time,end_time,days});
   S.set(ADM_BLOCKS_KEY,blocks);
   document.getElementById('sb-block').value='';document.getElementById('sb-xp').value='';
   document.getElementById('sb-start').value='';document.getElementById('sb-end').value='';
   document.getElementById('sb-days').value='';
-  admRenderBlocks();reloadFromAdmin();showToast('Block added!');
+  admRenderBlocks();reloadFromAdmin();showToast(isEdit?'Block updated!':'Block added!');
 }
 
 function admAddChore(){
@@ -1662,10 +1688,12 @@ function admAddChore(){
   const xp=parseInt(document.getElementById('ch-xp').value)||0;
   const days=document.getElementById('ch-days').value.trim()||'all';
   const chores=admGetChores();
-  chores.push({id:Date.now(),name,xp,days,category:'chore'});
+  const isEdit=admEditId.chore!==null;
+  if(isEdit){const idx=chores.findIndex(x=>x.id===admEditId.chore);if(idx>=0)Object.assign(chores[idx],{name,xp,days});admEditId.chore=null;document.getElementById('adm-chore-save-btn').textContent='+ ADD CHORE';document.getElementById('adm-chore-edit-lbl').style.display='none';}
+  else chores.push({id:Date.now(),name,xp,days,category:'chore'});
   S.set(ADM_CHORES_KEY,chores);
   document.getElementById('ch-name').value='';document.getElementById('ch-xp').value='';document.getElementById('ch-days').value='';
-  admRenderChores();reloadFromAdmin();showToast('Chore added!');
+  admRenderChores();reloadFromAdmin();showToast(isEdit?'Task updated!':'Chore added!');
 }
 
 function admAddLesson(){
@@ -1673,16 +1701,16 @@ function admAddLesson(){
   const subject=document.getElementById('ls-subject').value.trim()||'LESSONS';
   if(!name){showToast('Lesson name required');return;}
   const duration=parseInt(document.getElementById('ls-dur').value)||30;
-  const xp=parseInt(document.getElementById('ls-xp').value)||0;
   const days=document.getElementById('ls-days').value.trim()||'all';
   const link=document.getElementById('ls-link').value.trim();
   const lessons=admGetLessons();
-  lessons.push({id:Date.now(),name,subject,duration,xp,days,link,category:'school'});
+  const isEdit=admEditId.lesson!==null;
+  if(isEdit){const idx=lessons.findIndex(x=>x.id===admEditId.lesson);if(idx>=0)Object.assign(lessons[idx],{name,subject,duration,days,link});admEditId.lesson=null;document.getElementById('adm-lesson-save-btn').textContent='+ ADD LESSON';document.getElementById('adm-lesson-edit-lbl').style.display='none';}
+  else lessons.push({id:Date.now(),name,subject,duration,xp:0,days,link,category:'school'});
   S.set(ADM_LESSONS_KEY,lessons);
   document.getElementById('ls-name').value='';document.getElementById('ls-subject').value='';
-  document.getElementById('ls-dur').value='';document.getElementById('ls-xp').value='';
-  document.getElementById('ls-days').value='';document.getElementById('ls-link').value='';
-  admRenderLessons();reloadFromAdmin();showToast('Lesson added!');
+  document.getElementById('ls-dur').value='';document.getElementById('ls-days').value='';document.getElementById('ls-link').value='';
+  admRenderLessons();reloadFromAdmin();showToast(isEdit?'Lesson updated!':'Lesson added!');
 }
 
 function admAddReward(){
@@ -1692,18 +1720,74 @@ function admAddReward(){
   const cost=parseInt(document.getElementById('rw-cost').value)||0;
   const icon=document.getElementById('rw-icon').value.trim()||'★';
   const rewards=admGetRewards();
-  const id='rw_'+Date.now();
-  rewards.push({id,name,desc,cost,icon,active:'yes'});
+  const isEdit=admEditId.reward!==null;
+  if(isEdit){const idx=rewards.findIndex(x=>x.id===admEditId.reward);if(idx>=0)Object.assign(rewards[idx],{name,desc,cost,icon});admEditId.reward=null;document.getElementById('adm-reward-save-btn').textContent='+ ADD REWARD';document.getElementById('adm-reward-edit-lbl').style.display='none';}
+  else{const id='rw_'+Date.now();rewards.push({id,name,desc,cost,icon,active:'yes'});}
   S.set(ADM_REWARDS_KEY,rewards);
   document.getElementById('rw-name').value='';document.getElementById('rw-desc').value='';
   document.getElementById('rw-cost').value='';document.getElementById('rw-icon').value='';
-  admRenderRewards();reloadFromAdmin();showToast('Reward added!');
+  admRenderRewards();reloadFromAdmin();showToast(isEdit?'Reward updated!':'Reward added!');
 }
 
 function admDeleteBlock(id){const b=admGetBlocks().filter(x=>x.id!==id);S.set(ADM_BLOCKS_KEY,b);admRenderBlocks();reloadFromAdmin();}
 function admDeleteChore(id){const c=admGetChores().filter(x=>x.id!==id);S.set(ADM_CHORES_KEY,c);admRenderChores();reloadFromAdmin();}
 function admDeleteLesson(id){const l=admGetLessons().filter(x=>x.id!==id);S.set(ADM_LESSONS_KEY,l);admRenderLessons();reloadFromAdmin();}
 function admDeleteReward(id){const r=admGetRewards().filter(x=>x.id!==id);S.set(ADM_REWARDS_KEY,r);admRenderRewards();reloadFromAdmin();}
+
+function admEditBlock(id){
+  const b=admGetBlocks().find(x=>x.id===id);if(!b)return;
+  document.getElementById('sb-block').value=b.block||'';
+  document.getElementById('sb-xp').value=b.xp||'';
+  document.getElementById('sb-start').value=b.start_time||'';
+  document.getElementById('sb-end').value=b.end_time||'';
+  document.getElementById('sb-days').value=b.days==='all'?'':b.days||'';
+  admEditId.block=id;
+  document.getElementById('adm-block-save-btn').innerHTML='&#10003; UPDATE BLOCK';
+  document.getElementById('adm-block-edit-lbl').style.display='block';
+  document.getElementById('sb-block').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function admEditChore(id){
+  const c=admGetChores().find(x=>x.id===id);if(!c)return;
+  document.getElementById('ch-name').value=c.name||'';
+  document.getElementById('ch-xp').value=c.xp||'';
+  document.getElementById('ch-days').value=c.days==='all'?'':c.days||'';
+  admEditId.chore=id;
+  document.getElementById('adm-chore-save-btn').innerHTML='&#10003; UPDATE TASK';
+  document.getElementById('adm-chore-edit-lbl').style.display='block';
+  document.getElementById('ch-name').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function admEditLesson(id){
+  const l=admGetLessons().find(x=>x.id===id);if(!l)return;
+  document.getElementById('ls-name').value=l.name||'';
+  document.getElementById('ls-subject').value=l.subject||'';
+  document.getElementById('ls-dur').value=l.duration||'';
+  document.getElementById('ls-days').value=l.days==='all'?'':l.days||'';
+  document.getElementById('ls-link').value=l.link||'';
+  admEditId.lesson=id;
+  document.getElementById('adm-lesson-save-btn').innerHTML='&#10003; UPDATE LESSON';
+  document.getElementById('adm-lesson-edit-lbl').style.display='block';
+  document.getElementById('ls-name').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function admEditReward(id){
+  const r=admGetRewards().find(x=>x.id===id);if(!r)return;
+  document.getElementById('rw-name').value=r.name||'';
+  document.getElementById('rw-desc').value=r.desc||'';
+  document.getElementById('rw-cost').value=r.cost||'';
+  document.getElementById('rw-icon').value=r.icon||'';
+  admEditId.reward=id;
+  document.getElementById('adm-reward-save-btn').innerHTML='&#10003; UPDATE REWARD';
+  document.getElementById('adm-reward-edit-lbl').style.display='block';
+  document.getElementById('rw-name').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function mkAdmRow(infoHTML,onEdit,onDel){
+  const d=document.createElement('div');d.className='adm-row';
+  const info=document.createElement('div');info.className='adm-row-info';info.innerHTML=infoHTML;
+  const eb=document.createElement('button');eb.className='adm-edit';eb.textContent='EDIT';eb.onclick=onEdit;
+  const db=document.createElement('button');db.className='adm-del';db.textContent='DEL';db.onclick=onDel;
+  d.appendChild(info);d.appendChild(eb);d.appendChild(db);
+  return d;
+}
 
 function admRenderBlocks(){
   const blocks=admGetBlocks();
@@ -1712,11 +1796,9 @@ function admRenderBlocks(){
   if(!blocks.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No blocks yet.</div>';return;}
   el.innerHTML='';
   blocks.forEach(b=>{
-    const d=document.createElement('div');d.className='adm-row';
     const timeStr=(b.start_time&&b.end_time)?b.start_time+' – '+b.end_time:b.start_time||'';
-    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+b.block+'</div><div class="adm-row-meta">'+b.category.toUpperCase()+(timeStr?' · '+timeStr:'')+(b.xp?' · '+b.xp+' XP':'')+(b.days&&b.days!=='all'?' · '+b.days:'')+'</div></div>'
-      +'<button class="adm-del" onclick="admDeleteBlock('+b.id+')">DEL</button>';
-    el.appendChild(d);
+    const meta=(timeStr?timeStr+' · ':'')+b.xp+' XP'+(b.days&&b.days!=='all'?' · '+b.days:'');
+    el.appendChild(mkAdmRow('<div class="adm-row-name">'+b.block+'</div><div class="adm-row-meta">'+meta+'</div>',()=>admEditBlock(b.id),()=>admDeleteBlock(b.id)));
   });
 }
 
@@ -1727,10 +1809,8 @@ function admRenderChores(){
   if(!chores.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No chores yet.</div>';return;}
   el.innerHTML='';
   chores.forEach(c=>{
-    const d=document.createElement('div');d.className='adm-row';
-    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+c.name+'</div><div class="adm-row-meta">'+c.xp+' XP'+(c.days&&c.days!=='all'?' · '+c.days:'')+'</div></div>'
-      +'<button class="adm-del" onclick="admDeleteChore('+c.id+')">DEL</button>';
-    el.appendChild(d);
+    const meta=c.xp+' XP'+(c.days&&c.days!=='all'?' · '+c.days:'');
+    el.appendChild(mkAdmRow('<div class="adm-row-name">'+c.name+'</div><div class="adm-row-meta">'+meta+'</div>',()=>admEditChore(c.id),()=>admDeleteChore(c.id)));
   });
 }
 
@@ -1741,10 +1821,8 @@ function admRenderLessons(){
   if(!lessons.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No lessons yet.</div>';return;}
   el.innerHTML='';
   lessons.forEach(l=>{
-    const d=document.createElement('div');d.className='adm-row';
-    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+l.name+'</div><div class="adm-row-meta">'+l.subject+' · '+l.duration+'min · '+l.xp+' XP'+(l.days&&l.days!=='all'?' · '+l.days:'')+'</div></div>'
-      +'<button class="adm-del" onclick="admDeleteLesson('+l.id+')">DEL</button>';
-    el.appendChild(d);
+    const meta=l.subject+' · '+l.duration+'min'+(l.days&&l.days!=='all'?' · '+l.days:'');
+    el.appendChild(mkAdmRow('<div class="adm-row-name">'+l.name+'</div><div class="adm-row-meta">'+meta+'</div>',()=>admEditLesson(l.id),()=>admDeleteLesson(l.id)));
   });
 }
 
@@ -1755,10 +1833,8 @@ function admRenderRewards(){
   if(!rewards.length){el.innerHTML='<div style="font-size:10px;color:var(--txt4);padding:8px 0;">No rewards yet.</div>';return;}
   el.innerHTML='';
   rewards.forEach(r=>{
-    const d=document.createElement('div');d.className='adm-row';
-    d.innerHTML='<div class="adm-row-info"><div class="adm-row-name">'+(r.icon||'★')+' '+r.name+'</div><div class="adm-row-meta">'+r.cost+' XP'+(r.desc?' · '+r.desc:'')+'</div></div>'
-      +'<button class="adm-del" onclick="admDeleteReward(\'' + r.id + '\')">DEL</button>';
-    el.appendChild(d);
+    const meta=r.cost+' XP'+(r.desc?' · '+r.desc:'');
+    el.appendChild(mkAdmRow('<div class="adm-row-name">'+(r.icon||'★')+' '+r.name+'</div><div class="adm-row-meta">'+meta+'</div>',()=>admEditReward(r.id),()=>admDeleteReward(r.id)));
   });
 }
 
