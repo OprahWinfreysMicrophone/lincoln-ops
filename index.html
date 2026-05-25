@@ -2071,7 +2071,10 @@ function admRenderRotation(){
 function reloadFromAdmin(){
   // Rebuild BLOCKS and CHORES from admin data
   BLOCKS=[];CHORES=[];
-  const savedBlocks=admGetBlocks();
+  const savedBlocks=admGetBlocks().slice().sort((a,b)=>{
+    const ta=toMins(a.start_time),tb=toMins(b.start_time);
+    if(ta===null&&tb===null)return 0;if(ta===null)return 1;if(tb===null)return -1;return ta-tb;
+  });
   let si=0;
   savedBlocks.forEach(b=>{
     if(!isActiveDay(b.days))return;
