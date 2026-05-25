@@ -455,6 +455,32 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 .plk-del:hover{background:#220a0a;box-shadow:0 0 14px rgba(180,0,0,.25);}
 .plk-del:active{background:#300;box-shadow:0 0 22px var(--red);}
 .plk-key-empty{background:transparent;border:none;pointer-events:none;}
+
+/* ── ROTATION ORDER SCREEN ── */
+.rot-card{background:var(--panel);border:1px solid var(--border);border-left:4px solid var(--blue);
+  display:flex;align-items:center;gap:14px;padding:18px 14px;margin-bottom:10px;position:relative;}
+.rot-card::before,.rot-card::after{content:'';position:absolute;width:6px;height:6px;border-color:var(--blue);border-style:solid;}
+.rot-card::before{top:0;left:0;border-width:1px 0 0 1px;}
+.rot-card::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.rot-card-num{font-family:'Orbitron',sans-serif;font-size:24px;color:var(--blue);font-weight:900;min-width:36px;text-align:center;line-height:1;}
+.rot-card-body{flex:1;min-width:0;}
+.rot-card-name{font-size:15px;color:#fff;line-height:1.3;}
+.rot-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.rot-tag{font-size:8px;padding:2px 7px;letter-spacing:1px;}
+.rot-tag.math{background:#0a1520;color:#4488cc;border:1px solid #1a3a5c;}
+.rot-tag.reading{background:#051a10;color:#40c880;border:1px solid #0f3020;}
+.rot-tag.writing{background:#1a1200;color:#c8a400;border:1px solid #3a2800;}
+.rot-tag.history{background:#1a0d00;color:#ff9a3c;border:1px solid #3a1e00;}
+.rot-tag.geography{background:#051510;color:#40c880;border:1px solid #0f3020;}
+.rot-tag.science{background:#120a1a;color:#8844cc;border:1px solid #261050;}
+.rot-tag.art{background:#1a0808;color:#c84040;border:1px solid #3a1010;}
+.rot-tag.spelling{background:#050d1a;color:#6699dd;border:1px solid #0f2040;}
+.rot-tag.physical{background:#051a05;color:#40c880;border:1px solid #0f3010;}
+.rot-mv-btn{background:var(--bg2);border:1px solid var(--border);color:var(--txt3);
+  font-size:18px;width:46px;height:46px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rot-mv-btn:hover{border-color:var(--blue);color:var(--blue);}
+.rot-mv-btn:disabled{opacity:.2;cursor:default;}
+.rot-mv-wrap{display:flex;flex-direction:column;gap:5px;}
 </style>
 </head>
 <body>
@@ -645,6 +671,20 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
           <div style="font-size:10px;color:var(--txt3);margin-top:20px;" id="noday-day"></div>
         </div>
 
+        <!-- ORDER -->
+        <div id="school-order" style="display:none;">
+          <div style="text-align:center;padding:28px 20px 8px;">
+            <div style="font-size:9px;letter-spacing:4px;color:var(--txt3);margin-bottom:10px;">— SCHOOL MISSION —</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:#fff;margin-bottom:6px;">SET YOUR ORDER</div>
+            <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;letter-spacing:.5px;">Arrange today's activities then lock in.</div>
+            <div style="font-size:10px;color:var(--blue);letter-spacing:1px;margin-bottom:20px;" id="rot-week-lbl">WEEK 1 · MONDAY</div>
+          </div>
+          <div id="rot-card-list" style="padding:0 16px;max-width:640px;margin:0 auto;"></div>
+          <div style="padding:16px;max-width:640px;margin:0 auto;">
+            <button class="btn-blue" onclick="confirmSchoolOrder()">&#9654; &nbsp; LOCK IN ORDER &amp; START</button>
+          </div>
+        </div>
+
         <!-- IDLE -->
         <div id="school-idle" class="school-idle" style="display:none;">
           <div class="si-eye">— SCHOOL MISSION —</div>
@@ -820,6 +860,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
             <button class="padm-tab" id="padm-tab-school" onclick="padmTab('school')">SCHOOL</button>
             <button class="padm-tab" id="padm-tab-rewards" onclick="padmTab('rewards')">REWARDS</button>
             <button class="padm-tab" id="padm-tab-settings" onclick="padmTab('settings')">SETTINGS</button>
+            <button class="padm-tab" id="padm-tab-rotation" onclick="padmTab('rotation')">ROTATION</button>
           </div>
 
           <!-- SCHEDULE -->
@@ -912,6 +953,11 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
             </div>
           </div>
 
+          <!-- ROTATION -->
+          <div id="padm-content-rotation" style="display:none;">
+            <div id="adm-rot-content"></div>
+          </div>
+
           <button class="btn-ghost" style="margin-top:16px;margin-bottom:8px;" onclick="parentLock()">&#128274; LOCK PARENT ACCESS</button>
         </div>
       </div>
@@ -934,6 +980,17 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
   </div>
 </div><!-- /app -->
 
+<!-- ROTATION SWAP MODAL -->
+<div id="rot-swap-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:9970;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+  <div style="max-width:580px;margin:0 auto;padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;position:sticky;top:0;background:rgba(0,0,0,.95);padding:10px 0;z-index:1;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:13px;color:var(--gold2);font-weight:700;letter-spacing:2px;">SELECT REPLACEMENT</div>
+      <button style="background:transparent;border:1px solid var(--border);color:var(--txt3);font-family:'Share Tech Mono',monospace;font-size:11px;padding:8px 16px;cursor:pointer;" onclick="admCloseSwap()">&#10005; CANCEL</button>
+    </div>
+    <div id="rot-swap-list"></div>
+  </div>
+</div>
+
 <script>
 const SHEET_ACTIVITIES='https://docs.google.com/spreadsheets/d/e/2PACX-1vR4dST5lBHLv42o5KkBwvdL94SeC0blUFIXj7v2FtkGx4dTE0f3PIgXJkg7RIgsTA/pub?gid=1710188706&single=true&output=csv';
 const SHEET_REWARDS   ='https://docs.google.com/spreadsheets/d/e/2PACX-1vR4dST5lBHLv42o5KkBwvdL94SeC0blUFIXj7v2FtkGx4dTE0f3PIgXJkg7RIgsTA/pub?gid=1148400832&single=true&output=csv';
@@ -950,6 +1007,39 @@ const RANKS=[
   {name:'MAJOR',abbr:'MAJ',min:12000,max:20000},
   {name:'COLONEL',abbr:'COL',min:20000,max:35000},
   {name:'GENERAL',abbr:'GEN',min:35000,max:35000},
+];
+const ROTATION={
+  w1:{
+    mon:[{name:'Dice math',tags:['math']},{name:'Read + caption what you just read',tags:['reading','writing']},{name:'Simple kitchen experiment',tags:['science']},{name:'Mystery country',tags:['geography']}],
+    tue:[{name:'Math war card game',tags:['math']},{name:'Comic or graphic novel',tags:['reading']},{name:'Story starter',tags:['writing']},{name:'Watch a short history video',tags:['history']},{name:'Directed drawing',tags:['art']}],
+    wed:[{name:'History video + write one sentence after',tags:['history','writing']},{name:'Measurement activity',tags:['math']},{name:'Read about something he\'s into',tags:['reading']},{name:'Obstacle course',tags:['physical']}],
+    thu:[{name:'Math game on tablet',tags:['math']},{name:'Audiobook + journal entry',tags:['reading','writing']},{name:'Hangman',tags:['spelling']},{name:'Country or state of the day',tags:['geography']},{name:'Watercolor or paint',tags:['art']}],
+    fri:[{name:'Dice math',tags:['math']},{name:'Read about a historical figure',tags:['reading','history']},{name:'Daily journal entry',tags:['writing']},{name:'Science video + one fact',tags:['science']}],
+  },
+  w2:{
+    mon:[{name:'Hangman + write it in a sentence',tags:['spelling','writing']},{name:'Math war card game',tags:['math']},{name:'Audiobook + follow along',tags:['reading']},{name:'Read about an animal or planet',tags:['reading','science']}],
+    tue:[{name:'Measurement activity',tags:['math']},{name:'Country of the day + read a wiki sentence',tags:['geography','reading']},{name:'Make a list',tags:['writing']},{name:'Origami',tags:['art']},{name:'Cosmic Kids Yoga',tags:['physical']}],
+    wed:[{name:'Math game on tablet',tags:['math']},{name:'Science video + write the fact down',tags:['science','writing']},{name:'Read aloud together',tags:['reading']},{name:'Where is that accent from',tags:['geography']}],
+    thu:[{name:'Mystery country + read one fact after',tags:['geography','reading']},{name:'Dice math',tags:['math']},{name:'Caption a picture',tags:['writing']},{name:'Make a mini timeline',tags:['history']},{name:'Spelling game on tablet',tags:['spelling']}],
+    fri:[{name:'Math war card game',tags:['math']},{name:'Draw + write a title or caption',tags:['art','writing']},{name:'Read + tell me one thing',tags:['reading']},{name:'Google Earth exploration',tags:['geography']}],
+  },
+};
+const ACTIVITY_BANK=[
+  {name:'Dice math',tags:['math']},{name:'Math war card game',tags:['math']},{name:'Math game on tablet',tags:['math']},{name:'Measurement activity',tags:['math']},
+  {name:'Comic or graphic novel',tags:['reading']},{name:'Read about something he\'s into',tags:['reading']},{name:'Read about a historical figure',tags:['reading','history']},
+  {name:'Read about an animal or planet',tags:['reading','science']},{name:'Audiobook + follow along',tags:['reading']},{name:'Read aloud together',tags:['reading']},
+  {name:'Read + tell me one thing',tags:['reading']},{name:'Read + caption what you just read',tags:['reading','writing']},
+  {name:'Country of the day + read a wiki sentence',tags:['geography','reading']},{name:'Mystery country + read one fact after',tags:['geography','reading']},
+  {name:'Story starter',tags:['writing']},{name:'Daily journal entry',tags:['writing']},{name:'Audiobook + journal entry',tags:['reading','writing']},
+  {name:'Make a list',tags:['writing']},{name:'Caption a picture',tags:['writing']},{name:'History video + write one sentence after',tags:['history','writing']},
+  {name:'Science video + write the fact down',tags:['science','writing']},{name:'Draw + write a title or caption',tags:['art','writing']},
+  {name:'Hangman + write it in a sentence',tags:['spelling','writing']},
+  {name:'Watch a short history video',tags:['history']},{name:'Make a mini timeline',tags:['history']},
+  {name:'Mystery country',tags:['geography']},{name:'Country or state of the day',tags:['geography']},{name:'Google Earth exploration',tags:['geography']},{name:'Where is that accent from',tags:['geography']},
+  {name:'Simple kitchen experiment',tags:['science']},{name:'Science video + one fact',tags:['science']},
+  {name:'Directed drawing',tags:['art']},{name:'Watercolor or paint',tags:['art']},{name:'Origami',tags:['art']},{name:'Free draw',tags:['art']},{name:'Build something small',tags:['art']},{name:'Splatter or drip painting',tags:['art']},
+  {name:'Hangman',tags:['spelling']},{name:'Spelling game on tablet',tags:['spelling']},
+  {name:'Obstacle course',tags:['physical']},{name:'Cosmic Kids Yoga',tags:['physical']},{name:'Walk + talk',tags:['physical']},{name:'Catch or kick outside',tags:['physical']},
 ];
 const CAT_COLOR={wake:'#ff6b35',school:'#1d9e75',meal:'#7bc832',chore:'#c8a400',free:'#f0c800',bed:'#4488cc',bath:'#9b7fd4',xbox:'#40c880'};
 const CAT_BG   ={wake:'#1a0800',school:'#051a12',meal:'#0e1a00',chore:'#1a1600',free:'#1a1600',bed:'#050d1a',bath:'#120a1a',xbox:'#0a2018'};
@@ -983,6 +1073,31 @@ const schedKey      =i=>'v4_sched_'+i;
 const isSchedDone   =i=>S.get(schedKey(i),false);
 const getPin        =()=>S.get('v4_pin',DEFAULT_PIN);
 
+function getRotationWeek(){return S.get('v4_rot_week',1);}
+function setRotationWeek(w){S.set('v4_rot_week',w);S.set('v4_rot_week_date',todayStr());}
+function autoAdvanceWeek(){
+  const dateStr=S.get('v4_rot_week_date',null);
+  if(!dateStr){S.set('v4_rot_week_date',todayStr());return;}
+  const set=new Date(dateStr),now=new Date();
+  const setMon=new Date(set);setMon.setDate(set.getDate()-((set.getDay()+6)%7));setMon.setHours(0,0,0,0);
+  const nowMon=new Date(now);nowMon.setDate(now.getDate()-((now.getDay()+6)%7));nowMon.setHours(0,0,0,0);
+  const weeks=Math.round((nowMon-setMon)/(7*24*60*60*1000));
+  if(weeks>0){setRotationWeek(((getRotationWeek()-1+weeks)%2)+1);}
+}
+function getTodayRotation(){
+  autoAdvanceWeek();
+  const day=todayKey();
+  if(day==='sat'||day==='sun')return[];
+  const wk='w'+getRotationWeek();
+  const overrides=S.get('v4_rot_overrides',{});
+  const key=wk+'_'+day;
+  if(overrides[key])return overrides[key];
+  return(ROTATION[wk]&&ROTATION[wk][day])?ROTATION[wk][day]:[];
+}
+function rotActToLesson(a){
+  return{name:a.name,subject:a.tags?a.tags.map(t=>t.toUpperCase()).join(' \xb7 '):'',duration:20,xp:0,link:'',category:'school',tags:a.tags||[]};
+}
+
 const getSchoolStarted=()=>S.get('v4_sch_started_'+todayStr(),false);
 const setSchoolStarted=()=>S.set('v4_sch_started_'+todayStr(),true);
 const getSchoolCurIdx =()=>S.get('v4_sch_cur_'+todayStr(),-1);
@@ -993,6 +1108,7 @@ const setSchoolDone   =i=>S.set('v4_sch_done_'+todayStr()+'_'+i,true);
 let BLOCKS=[],CHORES=[],REWARDS_DATA=[],LESSONS=[];
 let schoolTimerInterval=null,schoolTimerSecs=0,schoolTimerTotal=0,schoolTimerAlerted=false,schoolTimerPaused=false;
 let admEditId={block:null,chore:null,lesson:null,reward:null};
+let rotOrderArr=[],rotSwapTarget=null;
 
 function toMins(t){if(!t||t===''||t==='none')return null;const p=t.split(':');if(p.length<2)return null;const h=parseInt(p[0]),m=parseInt(p[1]);if(isNaN(h)||isNaN(m))return null;return h*60+m;}
 function fmtMins(m){const h=Math.floor(Math.max(0,m)/60),mn=Math.max(0,m)%60;return String(h).padStart(2,'0')+':'+String(mn).padStart(2,'0');}
@@ -1167,7 +1283,9 @@ function getCurrentBlock(){
 }
 function getNextBlock(){
   const totalMins=new Date().getHours()*60+new Date().getMinutes();
-  return BLOCKS.find(b=>{const sm=toMins(b.start_time);return sm!==null&&sm>totalMins;});
+  let next=null,nextTime=Infinity;
+  BLOCKS.forEach(b=>{const sm=toMins(b.start_time);if(sm!==null&&sm>totalMins&&sm<nextTime){nextTime=sm;next=b;}});
+  return next;
 }
 
 function renderMission(){
@@ -1211,15 +1329,20 @@ const NO_SCHOOL_MSGS=[
 ];
 
 function renderSchool(){
-  const noday=LESSONS.length===0;
+  const todayRot=getTodayRotation();
+  const noday=todayRot.length===0;
   const started=getSchoolStarted();
-  const allDone=!noday&&LESSONS.every((_,i)=>getSchoolDone(i));
-
-  document.getElementById('school-noday').style.display   =noday?'block':'none';
-  document.getElementById('school-idle').style.display    =(!noday&&!started&&!allDone)?'block':'none';
-  document.getElementById('school-active').style.display  =(!noday&&started&&!allDone)?'block':'none';
+  if(started&&!LESSONS.length){
+    const rotSaved=S.get('v4_rot_order_'+todayStr(),null);
+    const rotSrc=rotSaved?rotSaved:todayRot;
+    LESSONS=rotSrc.map(a=>rotActToLesson(a));
+  }
+  const allDone=!noday&&LESSONS.length>0&&LESSONS.every((_,i)=>getSchoolDone(i));
+  document.getElementById('school-noday').style.display=noday?'block':'none';
+  document.getElementById('school-order').style.display=(!noday&&!started&&!allDone)?'block':'none';
+  document.getElementById('school-idle').style.display='none';
+  document.getElementById('school-active').style.display=(!noday&&started&&!allDone)?'block':'none';
   document.getElementById('school-complete').style.display=(!noday&&allDone)?'block':'none';
-
   if(noday){
     const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const today=days[new Date().getDay()];
@@ -1229,18 +1352,12 @@ function renderSchool(){
     document.getElementById('noday-day').textContent=today.toUpperCase()+' — NO LESSONS SCHEDULED';
     return;
   }
-
-  if(!started&&!allDone){
-    document.getElementById('sh-lesson-count').textContent=LESSONS.length+' subjects today — tap any to begin';
-    return;
-  }
-
+  if(!started&&!allDone){rotOrderArr=[];renderSchoolOrder();return;}
   if(started&&!allDone){
     renderLessonList();
     const curIdx=getSchoolCurIdx();
     if(curIdx>=0&&!getSchoolDone(curIdx))reloadLessonDisplay(curIdx);
   }
-
   if(allDone){
     const doneCt=LESSONS.filter((_,i)=>getSchoolDone(i)).length;
     const total=LESSONS.length;
@@ -1249,6 +1366,41 @@ function renderSchool(){
     document.getElementById('sc-msg').textContent=pct===100?'All subjects done. Outstanding academic performance, soldier.':pct>=80?'Strong school day. Almost perfect.':'School complete. Push harder tomorrow.';
     if(!S.get('v4_streak_school_'+todayStr(),false)){S.set('v4_streak',getStreak()+1);S.set('v4_streak_school_'+todayStr(),true);}
   }
+}
+
+function renderSchoolOrder(){
+  const todayRot=getTodayRotation();
+  if(!rotOrderArr.length)rotOrderArr=todayRot.map((_,i)=>i);
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('rot-week-lbl').textContent='WEEK '+getRotationWeek()+' \xb7 '+days[new Date().getDay()].toUpperCase();
+  const list=document.getElementById('rot-card-list');list.innerHTML='';
+  rotOrderArr.forEach((actIdx,pos)=>{
+    const act=todayRot[actIdx];
+    const card=document.createElement('div');card.className='rot-card';
+    const num=document.createElement('div');num.className='rot-card-num';num.textContent=pos+1;
+    const body=document.createElement('div');body.className='rot-card-body';
+    const nm=document.createElement('div');nm.className='rot-card-name';nm.textContent=act.name;
+    const tagsDiv=document.createElement('div');tagsDiv.className='rot-card-tags';
+    act.tags.forEach(t=>{const s=document.createElement('span');s.className='rot-tag '+t;s.textContent=t.toUpperCase();tagsDiv.appendChild(s);});
+    body.appendChild(nm);body.appendChild(tagsDiv);
+    const upBtn=document.createElement('button');upBtn.className='rot-mv-btn';upBtn.innerHTML='&#9650;';upBtn.disabled=pos===0;upBtn.onclick=()=>moveRotCard(pos,-1);
+    const dnBtn=document.createElement('button');dnBtn.className='rot-mv-btn';dnBtn.innerHTML='&#9660;';dnBtn.disabled=pos===rotOrderArr.length-1;dnBtn.onclick=()=>moveRotCard(pos,1);
+    const btns=document.createElement('div');btns.className='rot-mv-wrap';btns.appendChild(upBtn);btns.appendChild(dnBtn);
+    card.appendChild(num);card.appendChild(body);card.appendChild(btns);
+    list.appendChild(card);
+  });
+}
+function moveRotCard(pos,dir){
+  const np=pos+dir;if(np<0||np>=rotOrderArr.length)return;
+  [rotOrderArr[pos],rotOrderArr[np]]=[rotOrderArr[np],rotOrderArr[pos]];
+  renderSchoolOrder();
+}
+function confirmSchoolOrder(){
+  const todayRot=getTodayRotation();
+  const ordered=rotOrderArr.map(i=>todayRot[i]);
+  S.set('v4_rot_order_'+todayStr(),ordered);
+  LESSONS=ordered.map(a=>rotActToLesson(a));
+  startSchool();
 }
 
 function renderLessonList(){
@@ -1360,13 +1512,18 @@ function startSchool(){
   setSchoolStarted();
   document.getElementById('bot-msg').textContent='SCHOOL MISSION IN PROGRESS.';
   renderSchool();
+  const firstIdx=LESSONS.findIndex((_,i)=>!getSchoolDone(i));
+  if(firstIdx>=0)loadLesson(firstIdx);
 }
 
 function schoolMarkDone(){
   clearInterval(schoolTimerInterval);
   const idx=getSchoolCurIdx();if(idx<0)return;
   setSchoolDone(idx);setSchoolCurIdx(-1);schoolTimerPaused=false;
-  playXP();resetSchoolHeroDisplay();updateSidebar();renderSchool();
+  playXP();updateSidebar();
+  const nextIdx=LESSONS.findIndex((_,i)=>i>idx&&!getSchoolDone(i));
+  if(nextIdx>=0){renderLessonList();loadLesson(nextIdx);}
+  else{resetSchoolHeroDisplay();renderSchool();}
 }
 
 function resetSchoolHeroDisplay(){
@@ -1397,6 +1554,9 @@ function resetSchool(){
   localStorage.removeItem('v4_sch_started_'+todayStr());
   localStorage.removeItem('v4_sch_cur_'+todayStr());
   localStorage.removeItem('v4_school_xp_'+todayStr());
+  localStorage.removeItem('v4_rot_order_'+todayStr());
+  LESSONS=getTodayRotation().map(a=>rotActToLesson(a));
+  rotOrderArr=[];
   clearInterval(schoolTimerInterval);
   updateSidebar();renderSchool();showToast('SCHOOL RESET.');
 }
@@ -1612,7 +1772,6 @@ async function boot(){
 
   // Load from local admin data (no sheets needed)
   reloadFromAdmin();
-  if(!LESSONS.length)loadSchoolFallback();
 
   setTimeout(launchApp,3500);
 }
@@ -1647,10 +1806,11 @@ function parentLock(){
 }
 
 function padmTab(t){
-  ['schedule','school','rewards','settings'].forEach(s=>{
+  ['schedule','school','rewards','settings','rotation'].forEach(s=>{
     document.getElementById('padm-tab-'+s).classList.toggle('active',s===t);
     document.getElementById('padm-content-'+s).style.display=s===t?'block':'none';
   });
+  if(t==='rotation')admRenderRotation();
 }
 
 // Storage keys for admin data
@@ -1838,7 +1998,75 @@ function admRenderRewards(){
   });
 }
 
-function admRenderAll(){admRenderBlocks();admRenderChores();admRenderLessons();admRenderRewards();}
+function admRenderAll(){admRenderBlocks();admRenderChores();admRenderLessons();admRenderRewards();admRenderRotation();}
+
+function admToggleWeek(){
+  const cur=getRotationWeek();const nw=cur===1?2:1;
+  setRotationWeek(nw);showToast('Switched to Week '+nw);admRenderRotation();
+}
+function admOpenSwap(weekDay,idx){
+  rotSwapTarget={weekDay,idx};
+  const list=document.getElementById('rot-swap-list');list.innerHTML='';
+  ACTIVITY_BANK.forEach(act=>{
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:10px;padding:13px 12px;background:var(--panel);border:1px solid var(--border);margin-bottom:4px;cursor:pointer;';
+    const info=document.createElement('div');info.style.flex='1';
+    const nm=document.createElement('div');nm.style.cssText='font-size:13px;color:#fff;';nm.textContent=act.name;
+    const tg=document.createElement('div');tg.style.cssText='font-size:9px;color:var(--txt3);margin-top:3px;';tg.textContent=act.tags.map(t=>t.toUpperCase()).join(' \xb7 ');
+    info.appendChild(nm);info.appendChild(tg);
+    const btn=document.createElement('button');btn.className='adm-edit';btn.textContent='SELECT';btn.style.pointerEvents='none';
+    d.appendChild(info);d.appendChild(btn);
+    d.onclick=()=>admConfirmSwap(act);
+    list.appendChild(d);
+  });
+  document.getElementById('rot-swap-modal').style.display='block';
+}
+function admCloseSwap(){document.getElementById('rot-swap-modal').style.display='none';rotSwapTarget=null;}
+function admConfirmSwap(act){
+  if(!rotSwapTarget)return;
+  const{weekDay,idx}=rotSwapTarget;
+  const overrides=S.get('v4_rot_overrides',{});
+  if(!overrides[weekDay]){const[wk,day]=weekDay.split('_');overrides[weekDay]=[...ROTATION[wk][day]];}
+  overrides[weekDay][idx]=act;S.set('v4_rot_overrides',overrides);
+  admCloseSwap();admRenderRotation();showToast('Activity swapped!');
+}
+function admResetFullDay(weekDay){
+  const overrides=S.get('v4_rot_overrides',{});delete overrides[weekDay];S.set('v4_rot_overrides',overrides);
+  admRenderRotation();showToast('Day reset to default.');
+}
+function admRenderRotation(){
+  const el=document.getElementById('adm-rot-content');if(!el)return;
+  const week=getRotationWeek();
+  const overrides=S.get('v4_rot_overrides',{});
+  const DAY_NAMES={mon:'MONDAY',tue:'TUESDAY',wed:'WEDNESDAY',thu:'THURSDAY',fri:'FRIDAY'};
+  let html='<div class="panel" style="margin-bottom:10px;">';
+  html+='<div class="ph">Current Week<div class="ph-line"></div></div>';
+  html+='<div style="display:flex;align-items:center;gap:16px;padding:6px 0;">';
+  html+='<div style="font-family:\'Orbitron\',sans-serif;font-size:32px;font-weight:900;color:var(--gold2);">WEEK '+week+'</div>';
+  html+='<button class="btn-gold" style="margin-top:0;flex:1;" onclick="admToggleWeek()">SWITCH TO WEEK '+(week===1?2:1)+'</button>';
+  html+='</div></div>';
+  ['w1','w2'].forEach(wk=>{
+    const wNum=wk==='w1'?1:2;
+    html+='<div class="panel" style="margin-bottom:10px;"><div class="ph">WEEK '+wNum+'<div class="ph-line"></div></div>';
+    ['mon','tue','wed','thu','fri'].forEach(day=>{
+      const key=wk+'_'+day;
+      const acts=overrides[key]||(ROTATION[wk]&&ROTATION[wk][day])||[];
+      const isOverridden=!!overrides[key];
+      html+='<div style="margin-bottom:14px;"><div style="font-size:9px;letter-spacing:2px;color:var(--txt3);margin-bottom:5px;display:flex;align-items:center;gap:8px;">'+DAY_NAMES[day]+(isOverridden?'<span style="font-size:8px;color:var(--gold2);border:1px solid var(--gold);padding:1px 6px;">MODIFIED</span>':'')+'</div>';
+      acts.forEach((act,idx)=>{
+        const tagStr=act.tags?act.tags.map(t=>t.toUpperCase()).join(' \xb7 '):'';
+        html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);border:1px solid var(--border2);margin-bottom:3px;">';
+        html+='<div style="flex:1;min-width:0;"><div style="font-size:11px;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+act.name+'</div><div style="font-size:9px;color:var(--txt3);margin-top:1px;">'+tagStr+'</div></div>';
+        html+='<button class="adm-edit" onclick="admOpenSwap(\''+key+'\','+idx+')">SWAP</button>';
+        html+='</div>';
+      });
+      if(isOverridden){html+='<button class="btn-ghost" style="margin-top:4px;font-size:9px;padding:8px;" onclick="admResetFullDay(\''+key+'\')">&#8635; RESET TO DEFAULT</button>';}
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  el.innerHTML=html;
+}
 
 function reloadFromAdmin(){
   // Rebuild BLOCKS and CHORES from admin data
@@ -1855,12 +2083,14 @@ function reloadFromAdmin(){
     if(!isActiveDay(c.days))return;
     CHORES.push({name:c.name,xp:c.xp,days:c.days,category:'chore',id:c.id});
   });
-  // Rebuild LESSONS
+  // Rebuild LESSONS from rotation
   LESSONS=[];
-  admGetLessons().forEach(l=>{
-    if(!isActiveDay(l.days))return;
-    LESSONS.push({name:l.name,subject:l.subject,duration:l.duration,xp:l.xp,link:l.link,category:'school'});
-  });
+  const rotToday=getTodayRotation();
+  if(rotToday.length){
+    const rotSaved=S.get('v4_rot_order_'+todayStr(),null);
+    const rotSrc=(rotSaved&&getSchoolStarted())?rotSaved:rotToday;
+    LESSONS=rotSrc.map(a=>rotActToLesson(a));
+  }
   // Rebuild REWARDS_DATA
   REWARDS_DATA=admGetRewards();
 }
