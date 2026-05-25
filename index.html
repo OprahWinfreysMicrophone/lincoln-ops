@@ -8,6 +8,28 @@
 <meta name="apple-mobile-web-app-title" content="SHADOW OPS">
 <title>SHADOW OPS</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<script>(function(){
+  var c=document.createElement('canvas');c.width=c.height=180;
+  var x=c.getContext('2d');
+  x.fillStyle='#0a0800';x.fillRect(0,0,180,180);
+  x.strokeStyle='#c8a400';x.lineWidth=6;x.strokeRect(7,7,166,166);
+  x.strokeStyle='#f0c800';x.lineWidth=5;
+  var br=[[7,26,7,7,26,7],[153,7,173,7,173,26],[7,153,7,173,26,173],[153,173,173,173,173,153]];
+  br.forEach(function(p){x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(p[2],p[3]);x.lineTo(p[4],p[5]);x.stroke();});
+  x.fillStyle='#c8a400';
+  x.beginPath();x.moveTo(90,34);x.lineTo(148,66);x.lineTo(148,108);x.lineTo(90,148);x.lineTo(32,108);x.lineTo(32,66);x.closePath();x.fill();
+  x.fillStyle='#0a0800';
+  x.beginPath();x.moveTo(90,48);x.lineTo(134,74);x.lineTo(134,104);x.lineTo(90,132);x.lineTo(46,104);x.lineTo(46,74);x.closePath();x.fill();
+  x.fillStyle='#f0c800';
+  x.beginPath();x.moveTo(66,80);x.lineTo(72,73);x.lineTo(82,73);x.lineTo(88,80);x.lineTo(82,88);x.lineTo(72,88);x.closePath();x.fill();
+  x.beginPath();x.moveTo(92,80);x.lineTo(98,73);x.lineTo(108,73);x.lineTo(114,80);x.lineTo(108,88);x.lineTo(98,88);x.closePath();x.fill();
+  x.fillStyle='#000';
+  x.beginPath();x.arc(77,80,4,0,Math.PI*2);x.fill();
+  x.beginPath();x.arc(103,80,4,0,Math.PI*2);x.fill();
+  x.fillStyle='#c8a400';x.fillRect(78,100,24,6);x.fillRect(78,112,8,6);x.fillRect(94,112,8,6);
+  var url=c.toDataURL();
+  ['apple-touch-icon','shortcut icon'].forEach(function(r){var l=document.createElement('link');l.rel=r;l.href=url;document.head.appendChild(l);});
+})();</script>
 <style>
 :root{
   --gold:#c8a400;--gold2:#f0c800;--goldfaint:#1a1600;--golddim:#0e0c00;
@@ -574,7 +596,6 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
                 <div><div class="wx-cond" id="b-cond">LOADING...</div><div class="wx-note" id="b-note">Washington, IN</div></div>
               </div>
               <div class="wx-cells">
-                <div class="wx-cell"><div class="wx-cl">FEELS</div><div class="wx-cv" id="b-fl">--°</div></div>
                 <div class="wx-cell"><div class="wx-cl">WIND</div><div class="wx-cv" id="b-wnd">--</div></div>
                 <div class="wx-cell"><div class="wx-cl">HUMID</div><div class="wx-cv" id="b-hum">--%</div></div>
               </div>
@@ -1519,7 +1540,6 @@ async function loadWeather(){
     document.getElementById('b-cond').textContent=codes[cw.weathercode]||'CURRENT CONDITIONS';
     document.getElementById('b-note').textContent=t>85?'HOT — HYDRATE.':t>70?'GOOD CONDITIONS.':t>50?'COOL — LAYER UP.':'COLD — GEAR UP.';
     const idx=new Date().getHours();
-    document.getElementById('b-fl').textContent=Math.round(d.hourly.apparent_temperature[idx])+'&#176;';
     document.getElementById('b-wnd').textContent=Math.round(cw.windspeed)+'mph';
     document.getElementById('b-hum').textContent=d.hourly.relativehumidity_2m[idx]+'%';
   }catch(e){document.getElementById('b-cond').textContent='UNAVAILABLE';}
