@@ -1,0 +1,10 @@
+{
+  "name": "Shadow Ops",
+  "short_name": "Shadow Ops",
+  "description": "Classified Mission System",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#c8a400"
+}
