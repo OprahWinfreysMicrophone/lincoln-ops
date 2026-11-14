@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>LINCOLN OPS — COMMAND</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--bg2:#0a0a08;--panel:#0e0d08;--border:#2a2510;--border2:#1a1708;
+  --gold:#c8a400;--gold2:#f0c800;--goldfaint:#141100;
+  --txt:#cfc9a8;--txt3:#7a744f;--txt4:#4a4630;
+  --red:#c84040;--reddim:#1a0808;--grn:#40c880;--blue:#4488cc;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{background:var(--bg);color:var(--txt);font-family:'Share Tech Mono',monospace;min-height:100%;}
+body{padding-bottom:env(safe-area-inset-bottom);}
+#wrap{max-width:640px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+
+/* header */
+.hdr{position:sticky;top:0;z-index:50;background:rgba(0,0,0,.96);border-bottom:1px solid var(--border);
+  padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:15px;letter-spacing:3px;color:#fff;}
+.hdr-sub{font-size:9px;letter-spacing:2px;color:var(--gold2);margin-top:2px;}
+.sync{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:1px;color:var(--txt3);}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--txt4);}
+.sync-dot.live{background:var(--grn);box-shadow:0 0 8px var(--grn);}
+.sync-dot.err{background:var(--red);}
+
+#content{flex:1;padding:14px 14px 90px;}
+
+/* panels */
+.panel{background:var(--panel);border:1px solid var(--border);padding:14px;margin-bottom:12px;position:relative;}
+.panel::before,.panel::after{content:'';position:absolute;width:7px;height:7px;border-color:var(--gold);border-style:solid;opacity:.6;}
+.panel::before{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.panel::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.ph{display:flex;align-items:center;gap:10px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:2px;color:var(--gold2);margin-bottom:12px;}
+.ph-line{flex:1;height:1px;background:var(--border);}
+.ph-count{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--txt3);font-weight:400;}
+
+/* stat tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.tile{background:var(--panel);border:1px solid var(--border);padding:12px;text-align:center;}
+.tile-val{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:#fff;}
+.tile-val.gold{color:var(--gold2);}
+.tile-lbl{font-size:8px;letter-spacing:2px;color:var(--txt3);margin-top:4px;}
+
+/* item rows */
+.row{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border2);}
+.row:last-child{border-bottom:none;}
+.row-check{width:18px;height:18px;border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--grn);}
+.row.done .row-check{border-color:var(--grn);background:rgba(64,200,128,.08);}
+.row-name{flex:1;min-width:0;font-size:12px;color:#ddd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.row.done .row-name{color:var(--txt3);text-decoration:line-through;}
+.row-meta{font-size:9px;color:var(--txt3);flex-shrink:0;}
+.empty{font-size:10px;color:var(--txt4);padding:10px 0;letter-spacing:1px;}
+
+/* forms */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.full{grid-column:1/-1;}
+.lbl{font-size:9px;color:var(--txt3);letter-spacing:1px;margin-bottom:4px;}
+.inp{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--txt);
+  font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px;outline:none;border-radius:0;-webkit-appearance:none;}
+.inp:focus{border-color:var(--gold);}
+.btn{display:block;width:100%;padding:13px;margin-top:6px;text-align:center;cursor:pointer;
+  font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;border:1px solid;}
+.btn-gold{background:var(--goldfaint);border-color:var(--gold);color:var(--gold2);}
+.btn-gold:active{background:#241e00;}
+.btn-red{background:var(--reddim);border-color:var(--red);color:var(--red);}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--txt3);}
+.editing{font-size:9px;color:var(--gold2);letter-spacing:1px;padding:4px 0 6px;display:none;}
+.mini-btn{background:var(--goldfaint);border:1px solid var(--gold);color:var(--gold2);
+  font-size:9px;padding:6px 10px;cursor:pointer;flex-shrink:0;font-family:'Share Tech Mono',monospace;}
+.mini-del{background:var(--reddim);border:1px solid var(--red);color:var(--red);
+  font-size:9px;padding:6px 10px;cursor:pointer;flex-shrink:0;font-family:'Share Tech Mono',monospace;}
+
+/* bottom nav */
+.navbar{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;background:rgba(5,5,3,.98);
+  border-top:1px solid var(--border);max-width:640px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom);}
+.nb{flex:1;padding:11px 2px 9px;text-align:center;cursor:pointer;border:none;background:transparent;
+  color:var(--txt4);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;
+  border-top:2px solid transparent;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.nb-icon{font-size:15px;}
+.nb.active{color:var(--gold2);border-top-color:var(--gold);}
+
+/* lock + setup */
+.lock{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:88vh;padding:24px;text-align:center;}
+.lock-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;letter-spacing:5px;color:#fff;margin-bottom:6px;}
+.lock-sub{font-size:9px;letter-spacing:3px;color:var(--txt3);margin-bottom:28px;}
+.pin-dots{display:flex;gap:16px;margin-bottom:12px;}
+.pin-dot{width:18px;height:18px;border:2px solid var(--border);background:var(--bg2);transform:rotate(45deg);}
+.pin-dot.filled{background:var(--gold2);border-color:var(--gold2);box-shadow:0 0 12px var(--gold);}
+.pin-err{color:var(--red);font-size:10px;min-height:18px;margin-bottom:16px;}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:300px;max-width:100%;}
+.key{background:#14110a;border:1px solid var(--gold);color:var(--gold2);font-family:'Orbitron',sans-serif;
+  font-size:24px;font-weight:700;height:78px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.key:active{background:#241e00;}
+.key.del{background:var(--reddim);border-color:var(--red);color:var(--red);font-size:20px;}
+.key.blank{background:transparent;border:none;pointer-events:none;}
+.setup-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);font-size:11px;line-height:1.6;}
+.setup-step:last-child{border-bottom:none;}
+.setup-num{font-family:'Orbitron',sans-serif;color:var(--gold2);font-weight:700;flex-shrink:0;}
+code{background:var(--bg2);border:1px solid var(--border2);padding:1px 5px;font-size:10px;color:var(--gold2);word-break:break-all;}
+pre{background:var(--bg2);border:1px solid var(--border2);padding:10px;font-size:9px;color:var(--txt);
+  overflow-x:auto;margin:8px 0;line-height:1.5;}
+
+/* modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:100;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.modal-inner{max-width:580px;margin:0 auto;padding:16px;}
+.modal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:sticky;top:0;
+  background:rgba(0,0,0,.96);padding:10px 0;z-index:1;}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--gold2);font-weight:700;letter-spacing:2px;}
+.swap-item{display:flex;align-items:center;gap:10px;padding:12px;background:var(--panel);border:1px solid var(--border);margin-bottom:5px;cursor:pointer;}
+.swap-name{font-size:12px;color:#fff;}
+.swap-tags{font-size:9px;color:var(--txt3);margin-top:3px;}
+
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:200;
+  background:#0e0d08;border:1px solid var(--gold);color:var(--gold2);padding:11px 22px;
+  font-size:11px;letter-spacing:1px;transition:transform .25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.day-hdr{font-size:9px;letter-spacing:2px;color:var(--txt3);margin:12px 0 5px;display:flex;align-items:center;gap:8px;}
+.mod-tag{font-size:8px;color:var(--gold2);border:1px solid var(--gold);padding:1px 6px;}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<div id="wrap">
+
+  <!-- SETUP (shown when Firebase isn't configured yet) -->
+  <div id="scr-setup" class="hidden">
+    <div class="hdr"><div><div class="hdr-title">LINCOLN OPS</div><div class="hdr-sub">COMMAND CENTER — SETUP REQUIRED</div></div></div>
+    <div style="padding:16px;">
+      <div class="panel">
+        <div class="ph">CLOUD SYNC NOT CONFIGURED<div class="ph-line"></div></div>
+        <div style="font-size:11px;line-height:1.7;color:var(--txt);">
+          The dashboard needs a free Firebase database to talk to the iPad.
+          One-time setup, about 5 minutes:
+        </div>
+        <div class="setup-step"><div class="setup-num">1</div><div>Go to <code>console.firebase.google.com</code> and sign in with any Google account.</div></div>
+        <div class="setup-step"><div class="setup-num">2</div><div><b>Add project</b> → name it anything (e.g. <code>lincoln-ops</code>). Turn Analytics off.</div></div>
+        <div class="setup-step"><div class="setup-num">3</div><div>In the project: <b>Build → Firestore Database → Create database</b> → production mode → US location.</div></div>
+        <div class="setup-step"><div class="setup-num">4</div><div>Firestore → <b>Rules</b> tab → replace with:
+<pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /families/{family}/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>→ Publish.</div></div>
+        <div class="setup-step"><div class="setup-num">5</div><div>Gear icon → <b>Project settings → Your apps</b> → click the <code>&lt;/&gt;</code> web icon → register the app → copy the <code>firebaseConfig</code> it shows you.</div></div>
+        <div class="setup-step"><div class="setup-num">6</div><div>Paste it into <code>firebase-config.js</code> in the GitHub repo (replacing <code>null</code>) and re-upload the file.</div></div>
+        <div class="setup-step"><div class="setup-num">7</div><div>Open the app on the <b>iPad once first</b> — it moves the existing schedule, rewards and XP to the cloud. Then reload this page.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOCK -->
+  <div id="scr-lock" class="hidden">
+    <div class="lock">
+      <div class="lock-title">COMMAND CENTER</div>
+      <div class="lock-sub" id="lock-sub">ENTER PIN</div>
+      <div class="pin-dots">
+        <div class="pin-dot" id="dot0"></div><div class="pin-dot" id="dot1"></div>
+        <div class="pin-dot" id="dot2"></div><div class="pin-dot" id="dot3"></div>
+      </div>
+      <div class="pin-err" id="pin-err"></div>
+      <div class="keypad" id="keypad"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="scr-app" class="hidden">
+    <div class="hdr">
+      <div><div class="hdr-title">LINCOLN OPS</div><div class="hdr-sub">COMMAND CENTER</div></div>
+      <div class="sync"><div class="sync-dot" id="sync-dot"></div><span id="sync-lbl">CONNECTING</span></div>
+    </div>
+    <div id="content">
+      <div id="tab-today"></div>
+      <div id="tab-schedule" class="hidden"></div>
+      <div id="tab-school" class="hidden"></div>
+      <div id="tab-rewards" class="hidden"></div>
+      <div id="tab-settings" class="hidden"></div>
+    </div>
+    <div class="navbar">
+      <button class="nb active" id="nb-today"    onclick="showTab('today')"><span class="nb-icon">&#9673;</span>TODAY</button>
+      <button class="nb" id="nb-schedule" onclick="showTab('schedule')"><span class="nb-icon">&#128337;</span>SCHEDULE</button>
+      <button class="nb" id="nb-school"   onclick="showTab('school')"><span class="nb-icon">&#128218;</span>SCHOOL</button>
+      <button class="nb" id="nb-rewards"  onclick="showTab('rewards')"><span class="nb-icon">&#9733;</span>REWARDS</button>
+      <button class="nb" id="nb-settings" onclick="showTab('settings')"><span class="nb-icon">&#9881;</span>SETTINGS</button>
+    </div>
+  </div>
+</div>
+
+<!-- SWAP MODAL -->
+<div class="modal" id="swap-modal">
+  <div class="modal-inner">
+    <div class="modal-top">
+      <div class="modal-title">SELECT REPLACEMENT</div>
+      <button class="mini-btn" onclick="closeSwap()">&#10005; CANCEL</button>
+    </div>
+    <div class="panel" style="margin-bottom:10px;">
+      <div class="lbl">OR TYPE A CUSTOM ACTIVITY</div>
+      <input class="inp" id="swap-custom-name" placeholder="Activity name">
+      <div class="lbl" style="margin-top:8px;">TAGS (math, reading, writing, science, history, geography, art, spelling, physical)</div>
+      <input class="inp" id="swap-custom-tags" placeholder="e.g. math, art">
+      <button class="btn btn-gold" onclick="confirmCustomSwap()">USE CUSTOM ACTIVITY</button>
+    </div>
+    <div id="swap-list"></div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script type="module">
+// ── Constants mirrored from the iPad app (index.html) ──
+const DAY_KEYS=['sun','mon','tue','wed','thu','fri','sat'];
+const RANKS=[
+  {name:'PRIVATE',abbr:'PVT',min:0},{name:'CORPORAL',abbr:'CPL',min:500},
+  {name:'SERGEANT',abbr:'SGT',min:1200},{name:'STAFF SGT',abbr:'SSG',min:2500},
+  {name:'LIEUTENANT',abbr:'LT',min:4500},{name:'CAPTAIN',abbr:'CPT',min:7500},
+  {name:'MAJOR',abbr:'MAJ',min:12000},{name:'COLONEL',abbr:'COL',min:20000},
+  {name:'GENERAL',abbr:'GEN',min:35000},
+];
+const ROTATION={
+  w1:{
+    mon:[{name:'Dice math',tags:['math']},{name:'Read + caption what you just read',tags:['reading','writing']},{name:'Simple kitchen experiment',tags:['science']},{name:'Mystery country',tags:['geography']}],
+    tue:[{name:'Math war card game',tags:['math']},{name:'Comic or graphic novel',tags:['reading']},{name:'Story starter',tags:['writing']},{name:'Watch a short history video',tags:['history']},{name:'Directed drawing',tags:['art']}],
+    wed:[{name:'History video + write one sentence after',tags:['history','writing']},{name:'Measurement activity',tags:['math']},{name:'Read about something he\'s into',tags:['reading']},{name:'Obstacle course',tags:['physical']}],
+    thu:[{name:'Math game on tablet',tags:['math']},{name:'Audiobook + journal entry',tags:['reading','writing']},{name:'Hangman',tags:['spelling']},{name:'Country or state of the day',tags:['geography']},{name:'Watercolor or paint',tags:['art']}],
+    fri:[{name:'Dice math',tags:['math']},{name:'Read about a historical figure',tags:['reading','history']},{name:'Daily journal entry',tags:['writing']},{name:'Science video + one fact',tags:['science']}],
+  },
+  w2:{
+    mon:[{name:'Hangman + write it in a sentence',tags:['spelling','writing']},{name:'Math war card game',tags:['math']},{name:'Audiobook + follow along',tags:['reading']},{name:'Read about an animal or planet',tags:['reading','science']}],
+    tue:[{name:'Measurement activity',tags:['math']},{name:'Country of the day + read a wiki sentence',tags:['geography','reading']},{name:'Make a list',tags:['writing']},{name:'Origami',tags:['art']},{name:'Cosmic Kids Yoga',tags:['physical']}],
+    wed:[{name:'Math game on tablet',tags:['math']},{name:'Science video + write the fact down',tags:['science','writing']},{name:'Read aloud together',tags:['reading']},{name:'Where is that accent from',tags:['geography']}],
+    thu:[{name:'Mystery country + read one fact after',tags:['geography','reading']},{name:'Dice math',tags:['math']},{name:'Caption a picture',tags:['writing']},{name:'Make a mini timeline',tags:['history']},{name:'Spelling game on tablet',tags:['spelling']}],
+    fri:[{name:'Math war card game',tags:['math']},{name:'Draw + write a title or caption',tags:['art','writing']},{name:'Read + tell me one thing',tags:['reading']},{name:'Google Earth exploration',tags:['geography']}],
+  },
+};
+const ACTIVITY_BANK=[
+  {name:'Dice math',tags:['math']},{name:'Math war card game',tags:['math']},{name:'Math game on tablet',tags:['math']},{name:'Measurement activity',tags:['math']},
+  {name:'Comic or graphic novel',tags:['reading']},{name:'Read about something he\'s into',tags:['reading']},{name:'Read about a historical figure',tags:['reading','history']},
+  {name:'Read about an animal or planet',tags:['reading','science']},{name:'Audiobook + follow along',tags:['reading']},{name:'Read aloud together',tags:['reading']},
+  {name:'Read + tell me one thing',tags:['reading']},{name:'Read + caption what you just read',tags:['reading','writing']},
+  {name:'Country of the day + read a wiki sentence',tags:['geography','reading']},{name:'Mystery country + read one fact after',tags:['geography','reading']},
+  {name:'Story starter',tags:['writing']},{name:'Daily journal entry',tags:['writing']},{name:'Audiobook + journal entry',tags:['reading','writing']},
+  {name:'Make a list',tags:['writing']},{name:'Caption a picture',tags:['writing']},{name:'History video + write one sentence after',tags:['history','writing']},
+  {name:'Science video + write the fact down',tags:['science','writing']},{name:'Draw + write a title or caption',tags:['art','writing']},
+  {name:'Hangman + write it in a sentence',tags:['spelling','writing']},
+  {name:'Watch a short history video',tags:['history']},{name:'Make a mini timeline',tags:['history']},
+  {name:'Mystery country',tags:['geography']},{name:'Country or state of the day',tags:['geography']},{name:'Google Earth exploration',tags:['geography']},{name:'Where is that accent from',tags:['geography']},
+  {name:'Simple kitchen experiment',tags:['science']},{name:'Science video + one fact',tags:['science']},
+  {name:'Directed drawing',tags:['art']},{name:'Watercolor or paint',tags:['art']},{name:'Origami',tags:['art']},{name:'Free draw',tags:['art']},{name:'Build something small',tags:['art']},{name:'Splatter or drip painting',tags:['art']},
+  {name:'Hangman',tags:['spelling']},{name:'Spelling game on tablet',tags:['spelling']},
+  {name:'Obstacle course',tags:['physical']},{name:'Cosmic Kids Yoga',tags:['physical']},{name:'Walk + talk',tags:['physical']},{name:'Catch or kick outside',tags:['physical']},
+];
+
+// ── Helpers mirrored from the app ──
+function todayStr(){const n=new Date();return n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate();}
+function todayKey(){return DAY_KEYS[new Date().getDay()];}
+function toMins(t){if(!t||t===''||t==='none')return null;const p=t.split(':');if(p.length<2)return null;const h=parseInt(p[0]),m=parseInt(p[1]);if(isNaN(h)||isNaN(m))return null;return h*60+m;}
+function isActiveDay(days){
+  if(!days||days.trim().toLowerCase()==='all')return true;
+  const today=todayKey();
+  return days.toLowerCase().split(',').map(s=>s.trim()).some(x=>today.startsWith(x.substring(0,3))||x.startsWith(today.substring(0,3)));
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+const $=id=>document.getElementById(id);
+
+// ── State ──
+let cloud=null,cfg={},prog={},gotConfig=false,unlocked=sessionStorage.getItem('dash_ok')==='1';
+let curTab='today';
+let editing={block:null,chore:null,reward:null};
+let swapTarget=null;
+
+// ── Boot ──
+if(new URLSearchParams(location.search).has('demo')){
+  // Preview mode with sample data — no Firebase needed (?demo in the URL).
+  startCloud(()=>makeMockCloud());
+}else if(!window.FIREBASE_CONFIG){
+  $('scr-setup').classList.remove('hidden');
+}else{
+  import('./cloud-sync.js')
+    .then(m=>startCloud(m.initCloud))
+    .catch(e=>{
+      console.warn('Failed to load Firebase:',e);
+      $('scr-lock').classList.remove('hidden');
+      $('lock-sub').textContent='CANNOT REACH FIREBASE — CHECK CONNECTION AND RELOAD';
+    });
+}
+function startCloud(initCloud){
+  cloud=initCloud(window.FIREBASE_CONFIG,window.FAMILY_ID||'default');
+  buildKeypad();
+  showScreen(unlocked?'app':'lock');
+  $('lock-sub').textContent='CONNECTING…';
+  cloud.onConfig(snap=>{
+    const first=!gotConfig;gotConfig=true;
+    cfg=snap.exists()?snap.data():{};
+    if(first&&!snap.exists())$('lock-sub').textContent='WAITING FOR FIRST SYNC — OPEN THE APP ON THE IPAD ONCE';
+    else $('lock-sub').textContent='ENTER PIN';
+    setSync(true);
+    if(unlocked)render();
+  });
+  cloud.onProgress(snap=>{
+    const prev=prog;
+    prog=snap.exists()?snap.data():{};
+    setSync(true);
+    maybeNotify(prev,prog);
+    if(unlocked&&curTab==='today')render();
+  });
+}
+
+function makeMockCloud(){
+  const t=todayStr();
+  const demoCfg={
+    pin:'1234',rotWeek:1,rotWeekDate:t,rotOverrides:{},
+    blocks:[{id:1,block:'MORNING BLOCK',xp:50,start_time:'08:00',end_time:'09:00',days:'all'},{id:2,block:'XBOX TIME',xp:0,start_time:'16:00',end_time:'17:00',days:'all'}],
+    chores:[{id:3,name:'Clean room',xp:25,days:'all',category:'chore'},{id:4,name:'Feed the dog',xp:15,days:'all',category:'chore'}],
+    rewards:[{id:'rw_1',name:'Extra Xbox time',desc:'30 extra minutes',cost:200,icon:'🎮',active:'yes'}],
+  };
+  const demoProg={v4_chore_xp:1450,v4_spend:320,v4_streak:6,updatedAt:Date.now(),
+    ['v4_sch_started_'+t]:true,['v4_sch_done_'+t+'_0']:true,v4_chore_0:true,v4_sched_0:true,
+    v4_unlocks:[{id:'rw_1',name:'Extra Xbox time',date:new Date().toLocaleDateString(),cost:200}]};
+  let cfgCb=null,progCb=null;
+  const snap=d=>({exists:()=>true,data:()=>({...d})});
+  return{
+    onConfig:cb=>{cfgCb=cb;cb(snap(demoCfg));},
+    onProgress:cb=>{progCb=cb;cb(snap(demoProg));},
+    patchConfig:o=>{Object.assign(demoCfg,o);if(cfgCb)cfgCb(snap(demoCfg));return Promise.resolve();},
+    patchProgress:o=>{Object.assign(demoProg,o);if(progCb)progCb(snap(demoProg));return Promise.resolve();},
+    setProgressAll:o=>{Object.keys(demoProg).forEach(k=>delete demoProg[k]);Object.assign(demoProg,o);if(progCb)progCb(snap(demoProg));return Promise.resolve();}
+  };
+}
+
+function setSync(ok){
+  const d=$('sync-dot');d.classList.toggle('live',ok);d.classList.toggle('err',!ok);
+  $('sync-lbl').textContent=ok?'LIVE':'OFFLINE';
+}
+function showScreen(s){
+  $('scr-lock').classList.toggle('hidden',s!=='lock');
+  $('scr-app').classList.toggle('hidden',s!=='app');
+  if(s==='app')render();
+}
+
+// ── PIN lock ──
+let pinBuf='';
+function buildKeypad(){
+  const kp=$('keypad');
+  ['1','2','3','4','5','6','7','8','9','',' 0','<'].forEach(k=>{
+    const b=document.createElement('button');
+    if(k===''){b.className='key blank';}
+    else if(k==='<'){b.className='key del';b.innerHTML='&#9003;';b.onclick=()=>{pinBuf=pinBuf.slice(0,-1);drawDots();};}
+    else{const n=k.trim();b.className='key';b.textContent=n;b.onclick=()=>{
+      if(pinBuf.length>=4)return;pinBuf+=n;drawDots();
+      if(pinBuf.length===4)setTimeout(checkPin,120);
+    };}
+    kp.appendChild(b);
+  });
+}
+function drawDots(){for(let i=0;i<4;i++)$('dot'+i).classList.toggle('filled',i<pinBuf.length);}
+function checkPin(){
+  const pin=String(cfg.pin||'1234');
+  if(pinBuf===pin){
+    unlocked=true;sessionStorage.setItem('dash_ok','1');
+    pinBuf='';drawDots();showScreen('app');
+  }else{
+    $('pin-err').textContent='INCORRECT PIN — TRY AGAIN.';
+    pinBuf='';drawDots();
+  }
+}
+
+// ── Tabs ──
+window.showTab=function(t){
+  curTab=t;
+  ['today','schedule','school','rewards','settings'].forEach(s=>{
+    $('tab-'+s).classList.toggle('hidden',s!==t);
+    $('nb-'+s).classList.toggle('active',s===t);
+  });
+  render();
+};
+function render(){
+  if(!gotConfig)return;
+  ({today:renderToday,schedule:renderSchedule,school:renderSchool,rewards:renderRewards,settings:renderSettings})[curTab]();
+}
+
+// ── Derivations (must match the iPad app's logic exactly) ──
+function sortedActiveBlocks(){
+  const arr=(cfg.blocks||[]).slice().sort((a,b)=>{
+    const ta=toMins(a.start_time),tb=toMins(b.start_time);
+    if(ta===null&&tb===null)return 0;if(ta===null)return 1;if(tb===null)return -1;return ta-tb;
+  });
+  const out=[];let si=0;
+  arr.forEach(b=>{if(!isActiveDay(b.days))return;out.push({...b,schedIdx:si++});});
+  return out;
+}
+function activeChores(){return (cfg.chores||[]).filter(c=>isActiveDay(c.days));}
+function rotWeekNow(){
+  let wk=cfg.rotWeek||1;
+  const dateStr=cfg.rotWeekDate;
+  if(dateStr){
+    const set=new Date(dateStr),now=new Date();
+    if(!isNaN(set)){
+      const setMon=new Date(set);setMon.setDate(set.getDate()-((set.getDay()+6)%7));setMon.setHours(0,0,0,0);
+      const nowMon=new Date(now);nowMon.setDate(now.getDate()-((now.getDay()+6)%7));nowMon.setHours(0,0,0,0);
+      const weeks=Math.round((nowMon-setMon)/(7*24*60*60*1000));
+      if(weeks>0)wk=((wk-1+weeks)%2)+1;
+    }
+  }
+  return wk;
+}
+function todayRotation(){
+  const day=todayKey();
+  if(day==='sat'||day==='sun')return[];
+  const wk='w'+rotWeekNow();
+  const ov=(cfg.rotOverrides||{})[wk+'_'+day];
+  return ov||((ROTATION[wk]&&ROTATION[wk][day])||[]);
+}
+function rankFor(xp){let r=RANKS[0];RANKS.forEach(rk=>{if(xp>=rk.min)r=rk;});return r;}
+function rankIdxFor(xp){let idx=0;RANKS.forEach((rk,i)=>{if(xp>=(rk.min||0))idx=i;});return idx;}
+
+// ── PARENT NOTIFICATIONS ──
+// Fires browser notifications on the parent's device when the iPad reports
+// matching progress. Which events fire is controlled by cfg.notifPrefs, set
+// from the in-app PIN-gated "Notification Settings" panel.
+const NOTIF_DEFAULTS={schoolComplete:true,allChoresComplete:true,choreComplete:false,rewardUnlocked:true,rankUp:true};
+function notifPrefs(){return Object.assign({},NOTIF_DEFAULTS,cfg.notifPrefs||{});}
+function fireNotif(title,body){
+  try{
+    if(!('Notification'in window)||Notification.permission!=='granted')return;
+    const n=new Notification(title,{body:body,tag:'lincoln-'+title});
+    setTimeout(()=>{try{n.close();}catch(e){}},8000);
+  }catch(e){}
+}
+function choresDoneCount(p){
+  const chores=activeChores();
+  let c=0;chores.forEach((_,i)=>{if(p['v4_chore_'+i])c++;});
+  return{done:c,total:chores.length};
+}
+function schoolDoneCount(p){
+  const t=todayStr();
+  const lessons=p['v4_rot_order_'+t]||todayRotation();
+  const total=lessons.length;
+  let c=0;for(let i=0;i<total;i++){if(p['v4_sch_done_'+t+'_'+i])c++;}
+  return{done:c,total};
+}
+function maybeNotify(prev,cur){
+  if(!prev||!Object.keys(prev).length)return;          // skip the first sync
+  if(!('Notification'in window)||Notification.permission!=='granted')return;
+  const pr=notifPrefs();
+
+  // Rank promotion
+  if(pr.rankUp){
+    const a=rankIdxFor(prev['v4_chore_xp']||0),b=rankIdxFor(cur['v4_chore_xp']||0);
+    if(b>a)fireNotif('Rank promotion','Lincoln is now '+RANKS[b].name+'.');
+  }
+  // Reward redeemed
+  if(pr.rewardUnlocked){
+    const pu=(prev['v4_unlocks']||[]).length,cu=(cur['v4_unlocks']||[]).length;
+    if(cu>pu){
+      const last=cur['v4_unlocks'][cu-1]||{};
+      fireNotif('Reward redeemed',(last.name||'A reward')+' — '+(last.cost||0)+' XP.');
+    }
+  }
+  // Chores
+  const pc=choresDoneCount(prev),cc=choresDoneCount(cur);
+  if(cc.total>0&&cc.done>pc.done){
+    if(pr.allChoresComplete&&cc.done===cc.total&&pc.done<cc.total){
+      fireNotif('All chores done','Lincoln finished every chore for today.');
+    }else if(pr.choreComplete){
+      fireNotif('Chore completed',cc.done+' of '+cc.total+' chores done today.');
+    }
+  }
+  // School day
+  if(pr.schoolComplete){
+    const ps=schoolDoneCount(prev),cs=schoolDoneCount(cur);
+    if(cs.total>0&&cs.done===cs.total&&ps.done<cs.total){
+      fireNotif('School complete','Lincoln finished all '+cs.total+' lessons today.');
+    }
+  }
+}
+window.enableNotifs=function(){
+  if(!('Notification'in window)){showToast('This browser has no notification support');return;}
+  Notification.requestPermission().then(p=>{
+    render();
+    if(p==='granted'){fireNotif('Notifications on','You will be alerted here when Lincoln makes progress.');showToast('Browser alerts enabled');}
+    else showToast('Permission '+p);
+  });
+};
+
+// ── TODAY ──
+function renderToday(){
+  const t=todayStr();
+  const totalXP=prog['v4_chore_xp']||0;
+  const spend=prog['v4_spend']||0;
+  const streak=prog['v4_streak']||0;
+  const rank=rankFor(totalXP);
+  const started=!!prog['v4_sch_started_'+t];
+  const order=prog['v4_rot_order_'+t];
+  const lessons=(started&&order)?order:todayRotation();
+  const weekend=lessons.length===0;
+  const blocks=sortedActiveBlocks();
+  const chores=activeChores();
+  const unlocks=(prog['v4_unlocks']||[]).slice().reverse().slice(0,5);
+  const upd=prog['updatedAt'];
+
+  let h='<div class="tiles">';
+  h+='<div class="tile"><div class="tile-val gold">'+esc(rank.abbr)+'</div><div class="tile-lbl">'+esc(rank.name)+'</div></div>';
+  h+='<div class="tile"><div class="tile-val">'+totalXP.toLocaleString()+'</div><div class="tile-lbl">TOTAL XP</div></div>';
+  h+='<div class="tile"><div class="tile-val">'+spend.toLocaleString()+'</div><div class="tile-lbl">SPENDABLE XP</div></div>';
+  h+='<div class="tile"><div class="tile-val">'+streak+'</div><div class="tile-lbl">DAY STREAK</div></div>';
+  h+='</div>';
+
+  h+='<div class="panel"><div class="ph">SCHOOL — TODAY<div class="ph-line"></div><span class="ph-count">'+(weekend?'NO LESSONS':(started?'IN PROGRESS':'NOT STARTED'))+'</span></div>';
+  if(weekend)h+='<div class="empty">Weekend — no lessons scheduled.</div>';
+  else lessons.forEach((a,i)=>{
+    const done=!!prog['v4_sch_done_'+t+'_'+i];
+    h+='<div class="row'+(done?' done':'')+'"><div class="row-check">'+(done?'&#10003;':'')+'</div><div class="row-name">'+esc(a.name)+'</div><div class="row-meta">'+esc((a.tags||[]).join(' · ').toUpperCase())+'</div></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="panel"><div class="ph">SCHEDULE BLOCKS<div class="ph-line"></div><span class="ph-count">'+blocks.length+'</span></div>';
+  if(!blocks.length)h+='<div class="empty">No blocks scheduled today.</div>';
+  else blocks.forEach(b=>{
+    const done=!!prog['v4_sched_'+b.schedIdx];
+    const ts=b.start_time?(b.end_time?b.start_time+'–'+b.end_time:b.start_time):'';
+    h+='<div class="row'+(done?' done':'')+'"><div class="row-check">'+(done?'&#10003;':'')+'</div><div class="row-name">'+esc(b.block)+'</div><div class="row-meta">'+esc(ts)+(b.xp?' · '+b.xp+' XP':'')+'</div></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="panel"><div class="ph">CHORES<div class="ph-line"></div><span class="ph-count">'+chores.length+'</span></div>';
+  if(!chores.length)h+='<div class="empty">No chores today.</div>';
+  else chores.forEach((c,i)=>{
+    const done=!!prog['v4_chore_'+i];
+    h+='<div class="row'+(done?' done':'')+'"><div class="row-check">'+(done?'&#10003;':'')+'</div><div class="row-name">'+esc(c.name)+'</div><div class="row-meta">'+(c.xp||0)+' XP</div></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="panel"><div class="ph">RECENT REWARDS<div class="ph-line"></div></div>';
+  if(!unlocks.length)h+='<div class="empty">Nothing redeemed yet.</div>';
+  else unlocks.forEach(u=>{
+    h+='<div class="row"><div class="row-name">'+esc(u.name)+'</div><div class="row-meta">'+esc(u.date||'')+' · '+(u.cost||0)+' XP</div></div>';
+  });
+  h+='</div>';
+
+  if(upd)h+='<div class="empty" style="text-align:center;">LAST ACTIVITY FROM IPAD: '+new Date(upd).toLocaleString()+'</div>';
+  $('tab-today').innerHTML=h;
+}
+
+// ── SCHEDULE (blocks + chores CRUD) ──
+function renderSchedule(){
+  let h='<div class="panel"><div class="ph" id="blk-form-title">ADD SCHEDULE BLOCK<div class="ph-line"></div></div>';
+  h+='<div class="grid2">';
+  h+='<div class="full"><div class="lbl">BLOCK NAME</div><input class="inp" id="f-blk-name" placeholder="e.g. MORNING BLOCK"></div>';
+  h+='<div><div class="lbl">XP</div><input class="inp" id="f-blk-xp" type="number" placeholder="50"></div>';
+  h+='<div><div class="lbl">DAYS (all / mon,tue…)</div><input class="inp" id="f-blk-days" placeholder="all"></div>';
+  h+='<div><div class="lbl">START</div><input class="inp" id="f-blk-start" type="time"></div>';
+  h+='<div><div class="lbl">END</div><input class="inp" id="f-blk-end" type="time"></div>';
+  h+='</div><div class="editing" id="blk-editing">&#9998; EDITING — SAVE TO UPDATE</div>';
+  h+='<button class="btn btn-gold" id="blk-save" onclick="saveBlock()">+ ADD BLOCK</button></div>';
+
+  h+='<div class="panel"><div class="ph">BLOCKS<div class="ph-line"></div><span class="ph-count">'+(cfg.blocks||[]).length+'</span></div><div id="blk-list">';
+  if(!(cfg.blocks||[]).length)h+='<div class="empty">No blocks yet.</div>';
+  (cfg.blocks||[]).forEach(b=>{
+    const ts=(b.start_time&&b.end_time)?b.start_time+' – '+b.end_time:(b.start_time||'');
+    h+='<div class="row"><div style="flex:1;min-width:0;"><div class="row-name">'+esc(b.block)+'</div><div class="row-meta">'+esc(ts)+(ts?' · ':'')+(b.xp||0)+' XP'+(b.days&&b.days!=='all'?' · '+esc(b.days):'')+'</div></div>';
+    h+='<button class="mini-btn" onclick="editBlock('+b.id+')">EDIT</button><button class="mini-del" onclick="delBlock('+b.id+')">DEL</button></div>';
+  });
+  h+='</div></div>';
+
+  h+='<div class="panel"><div class="ph">ADD CHORE / TASK<div class="ph-line"></div></div>';
+  h+='<div class="grid2">';
+  h+='<div class="full"><div class="lbl">TASK NAME</div><input class="inp" id="f-ch-name" placeholder="e.g. Clean room"></div>';
+  h+='<div><div class="lbl">XP</div><input class="inp" id="f-ch-xp" type="number" placeholder="25"></div>';
+  h+='<div><div class="lbl">DAYS</div><input class="inp" id="f-ch-days" placeholder="all"></div>';
+  h+='</div><div class="editing" id="ch-editing">&#9998; EDITING — SAVE TO UPDATE</div>';
+  h+='<button class="btn btn-gold" id="ch-save" onclick="saveChore()">+ ADD CHORE</button></div>';
+
+  h+='<div class="panel"><div class="ph">CHORES<div class="ph-line"></div><span class="ph-count">'+(cfg.chores||[]).length+'</span></div>';
+  if(!(cfg.chores||[]).length)h+='<div class="empty">No chores yet.</div>';
+  (cfg.chores||[]).forEach(c=>{
+    h+='<div class="row"><div style="flex:1;min-width:0;"><div class="row-name">'+esc(c.name)+'</div><div class="row-meta">'+(c.xp||0)+' XP'+(c.days&&c.days!=='all'?' · '+esc(c.days):'')+'</div></div>';
+    h+='<button class="mini-btn" onclick="editChore('+c.id+')">EDIT</button><button class="mini-del" onclick="delChore('+c.id+')">DEL</button></div>';
+  });
+  h+='</div>';
+  $('tab-schedule').innerHTML=h;
+}
+
+window.saveBlock=function(){
+  const name=$('f-blk-name').value.trim();
+  if(!name){showToast('Block name required');return;}
+  const item={block:name,xp:parseInt($('f-blk-xp').value)||0,start_time:$('f-blk-start').value||'',end_time:$('f-blk-end').value||'',days:$('f-blk-days').value.trim()||'all'};
+  const blocks=(cfg.blocks||[]).slice();
+  if(editing.block!==null){const i=blocks.findIndex(x=>x.id===editing.block);if(i>=0)blocks[i]={...blocks[i],...item};editing.block=null;}
+  else blocks.push({id:Date.now(),...item});
+  push({blocks},'Block saved');
+};
+window.editBlock=function(id){
+  const b=(cfg.blocks||[]).find(x=>x.id===id);if(!b)return;
+  $('f-blk-name').value=b.block||'';$('f-blk-xp').value=b.xp||'';
+  $('f-blk-start').value=b.start_time||'';$('f-blk-end').value=b.end_time||'';
+  $('f-blk-days').value=b.days==='all'?'':(b.days||'');
+  editing.block=id;$('blk-editing').style.display='block';$('blk-save').innerHTML='&#10003; UPDATE BLOCK';
+  $('f-blk-name').scrollIntoView({behavior:'smooth',block:'center'});
+};
+window.delBlock=function(id){
+  if(!confirm('Delete this block?'))return;
+  push({blocks:(cfg.blocks||[]).filter(x=>x.id!==id)},'Block deleted');
+};
+window.saveChore=function(){
+  const name=$('f-ch-name').value.trim();
+  if(!name){showToast('Task name required');return;}
+  const item={name,xp:parseInt($('f-ch-xp').value)||0,days:$('f-ch-days').value.trim()||'all',category:'chore'};
+  const chores=(cfg.chores||[]).slice();
+  if(editing.chore!==null){const i=chores.findIndex(x=>x.id===editing.chore);if(i>=0)chores[i]={...chores[i],...item};editing.chore=null;}
+  else chores.push({id:Date.now(),...item});
+  push({chores},'Chore saved');
+};
+window.editChore=function(id){
+  const c=(cfg.chores||[]).find(x=>x.id===id);if(!c)return;
+  $('f-ch-name').value=c.name||'';$('f-ch-xp').value=c.xp||'';
+  $('f-ch-days').value=c.days==='all'?'':(c.days||'');
+  editing.chore=id;$('ch-editing').style.display='block';$('ch-save').innerHTML='&#10003; UPDATE TASK';
+  $('f-ch-name').scrollIntoView({behavior:'smooth',block:'center'});
+};
+window.delChore=function(id){
+  if(!confirm('Delete this chore?'))return;
+  push({chores:(cfg.chores||[]).filter(x=>x.id!==id)},'Chore deleted');
+};
+
+// ── SCHOOL (rotation) ──
+function renderSchool(){
+  const week=rotWeekNow();
+  const ov=cfg.rotOverrides||{};
+  const DAY_NAMES={mon:'MONDAY',tue:'TUESDAY',wed:'WEDNESDAY',thu:'THURSDAY',fri:'FRIDAY'};
+  let h='<div class="panel"><div class="ph">CURRENT WEEK<div class="ph-line"></div></div>';
+  h+='<div style="display:flex;align-items:center;gap:16px;">';
+  h+='<div style="font-family:\'Orbitron\',sans-serif;font-size:30px;font-weight:900;color:var(--gold2);">WEEK '+week+'</div>';
+  h+='<button class="btn btn-gold" style="margin-top:0;flex:1;" onclick="toggleWeek()">SWITCH TO WEEK '+(week===1?2:1)+'</button>';
+  h+='</div></div>';
+  ['w1','w2'].forEach(wk=>{
+    h+='<div class="panel"><div class="ph">WEEK '+(wk==='w1'?1:2)+'<div class="ph-line"></div></div>';
+    ['mon','tue','wed','thu','fri'].forEach(day=>{
+      const key=wk+'_'+day;
+      const acts=ov[key]||(ROTATION[wk]&&ROTATION[wk][day])||[];
+      const mod=!!ov[key];
+      h+='<div class="day-hdr">'+DAY_NAMES[day]+(mod?'<span class="mod-tag">MODIFIED</span>':'')+'</div>';
+      acts.forEach((a,idx)=>{
+        h+='<div class="row"><div style="flex:1;min-width:0;"><div class="row-name">'+esc(a.name)+'</div><div class="row-meta">'+esc((a.tags||[]).join(' · ').toUpperCase())+'</div></div>';
+        h+='<button class="mini-btn" onclick="openSwap(\''+key+'\','+idx+')">SWAP</button></div>';
+      });
+      if(mod)h+='<button class="btn btn-ghost" style="font-size:9px;padding:9px;" onclick="resetDay(\''+key+'\')">&#8635; RESET TO DEFAULT</button>';
+    });
+    h+='</div>';
+  });
+  $('tab-school').innerHTML=h;
+}
+window.toggleWeek=function(){
+  const nw=rotWeekNow()===1?2:1;
+  push({rotWeek:nw,rotWeekDate:todayStr()},'Switched to Week '+nw);
+};
+window.openSwap=function(key,idx){
+  swapTarget={key,idx};
+  const list=$('swap-list');list.innerHTML='';
+  ACTIVITY_BANK.forEach(a=>{
+    const d=document.createElement('div');d.className='swap-item';
+    d.innerHTML='<div style="flex:1;"><div class="swap-name">'+esc(a.name)+'</div><div class="swap-tags">'+esc(a.tags.join(' · ').toUpperCase())+'</div></div><span class="mini-btn" style="pointer-events:none;">SELECT</span>';
+    d.onclick=()=>confirmSwap(a);
+    list.appendChild(d);
+  });
+  $('swap-custom-name').value='';$('swap-custom-tags').value='';
+  $('swap-modal').style.display='block';
+};
+window.closeSwap=function(){$('swap-modal').style.display='none';swapTarget=null;};
+window.confirmCustomSwap=function(){
+  const name=$('swap-custom-name').value.trim();
+  if(!name){showToast('Activity name required');return;}
+  const tags=$('swap-custom-tags').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  confirmSwap({name,tags:tags.length?tags:['reading']});
+};
+function confirmSwap(act){
+  if(!swapTarget)return;
+  const{key,idx}=swapTarget;
+  const ov={...(cfg.rotOverrides||{})};
+  if(!ov[key]){const[wk,day]=key.split('_');ov[key]=[...ROTATION[wk][day]];}
+  else ov[key]=ov[key].slice();
+  ov[key][idx]=act;
+  window.closeSwap();
+  push({rotOverrides:ov},'Activity swapped');
+}
+window.resetDay=function(key){
+  const ov={...(cfg.rotOverrides||{})};delete ov[key];
+  push({rotOverrides:ov},'Day reset to default');
+};
+
+// ── REWARDS ──
+function renderRewards(){
+  let h='<div class="panel"><div class="ph">ADD REWARD<div class="ph-line"></div></div>';
+  h+='<div class="grid2">';
+  h+='<div class="full"><div class="lbl">REWARD NAME</div><input class="inp" id="f-rw-name" placeholder="e.g. Extra Xbox time"></div>';
+  h+='<div class="full"><div class="lbl">DESCRIPTION</div><input class="inp" id="f-rw-desc" placeholder="e.g. 30 extra minutes"></div>';
+  h+='<div><div class="lbl">COST (XP)</div><input class="inp" id="f-rw-cost" type="number" placeholder="200"></div>';
+  h+='<div><div class="lbl">ICON (emoji)</div><input class="inp" id="f-rw-icon" placeholder="&#127918;"></div>';
+  h+='</div><div class="editing" id="rw-editing">&#9998; EDITING — SAVE TO UPDATE</div>';
+  h+='<button class="btn btn-gold" id="rw-save" onclick="saveReward()">+ ADD REWARD</button></div>';
+
+  h+='<div class="panel"><div class="ph">REWARDS<div class="ph-line"></div><span class="ph-count">'+(cfg.rewards||[]).length+'</span></div>';
+  if(!(cfg.rewards||[]).length)h+='<div class="empty">No rewards yet.</div>';
+  (cfg.rewards||[]).forEach(r=>{
+    h+='<div class="row"><div style="flex:1;min-width:0;"><div class="row-name">'+esc(r.icon||'★')+' '+esc(r.name)+'</div><div class="row-meta">'+(r.cost||0)+' XP'+(r.desc?' · '+esc(r.desc):'')+'</div></div>';
+    h+='<button class="mini-btn" onclick="editReward(\''+esc(r.id)+'\')">EDIT</button><button class="mini-del" onclick="delReward(\''+esc(r.id)+'\')">DEL</button></div>';
+  });
+  h+='</div>';
+  $('tab-rewards').innerHTML=h;
+}
+window.saveReward=function(){
+  const name=$('f-rw-name').value.trim();
+  if(!name){showToast('Reward name required');return;}
+  const item={name,desc:$('f-rw-desc').value.trim(),cost:parseInt($('f-rw-cost').value)||0,icon:$('f-rw-icon').value.trim()||'★',active:'yes'};
+  const rewards=(cfg.rewards||[]).slice();
+  if(editing.reward!==null){const i=rewards.findIndex(x=>x.id===editing.reward);if(i>=0)rewards[i]={...rewards[i],...item};editing.reward=null;}
+  else rewards.push({id:'rw_'+Date.now(),...item});
+  push({rewards},'Reward saved');
+};
+window.editReward=function(id){
+  const r=(cfg.rewards||[]).find(x=>x.id===id);if(!r)return;
+  $('f-rw-name').value=r.name||'';$('f-rw-desc').value=r.desc||'';
+  $('f-rw-cost').value=r.cost||'';$('f-rw-icon').value=r.icon||'';
+  editing.reward=id;$('rw-editing').style.display='block';$('rw-save').innerHTML='&#10003; UPDATE REWARD';
+  $('f-rw-name').scrollIntoView({behavior:'smooth',block:'center'});
+};
+window.delReward=function(id){
+  if(!confirm('Delete this reward?'))return;
+  push({rewards:(cfg.rewards||[]).filter(x=>x.id!==id)},'Reward deleted');
+};
+
+// ── SETTINGS ──
+function renderSettings(){
+  let h='<div class="panel"><div class="ph">CHANGE PIN<div class="ph-line"></div></div>';
+  h+='<div style="font-size:10px;color:var(--txt3);margin-bottom:8px;line-height:1.6;">Used for this dashboard and the in-app parent buttons (skip lesson, reset school).</div>';
+  h+='<div class="lbl">NEW PIN (4 DIGITS)</div><input class="inp" id="f-pin" maxlength="4" type="tel" placeholder="1234">';
+  h+='<button class="btn btn-gold" onclick="savePin()">SAVE NEW PIN</button></div>';
+
+  h+='<div class="panel"><div class="ph">REMOTE ACTIONS<div class="ph-line"></div></div>';
+  h+='<div style="font-size:10px;color:var(--txt3);margin-bottom:8px;line-height:1.6;">These run on the iPad the next time it syncs (it must be online).</div>';
+  h+='<button class="btn btn-ghost" onclick="remoteReset(\'resetSchoolAt\',\'Reset today\\\'s school on the iPad?\')">&#8635; RESET TODAY\'S SCHOOL</button>';
+  h+='<button class="btn btn-ghost" onclick="remoteReset(\'resetActivitiesAt\',\'Reset today\\\'s activities on the iPad?\')">&#8635; RESET TODAY\'S ACTIVITIES</button>';
+  h+='<button class="btn btn-red" onclick="resetAllProgress()">RESET ALL PROGRESS (XP, STREAKS, EVERYTHING)</button></div>';
+
+  h+='<div class="panel"><div class="ph">BROWSER ALERTS<div class="ph-line"></div></div>';
+  const perm=('Notification'in window)?Notification.permission:'unsupported';
+  const permTxt={granted:'ON — alerts will show on this device',denied:'BLOCKED — allow notifications for this site in your browser',default:'OFF — tap below to enable',unsupported:'not supported by this browser'}[perm];
+  h+='<div style="font-size:10px;color:var(--txt3);margin-bottom:8px;line-height:1.6;">Alerts fire on this device when the iPad reports progress. Choose which events in the app: <b>Debrief → Notification Settings (parent)</b>.</div>';
+  h+='<div style="font-size:10px;margin-bottom:8px;">STATUS: <span style="color:var(--gold2);">'+esc(permTxt)+'</span></div>';
+  if(perm==='default')h+='<button class="btn btn-gold" onclick="enableNotifs()">ENABLE BROWSER ALERTS</button>';
+  const pr=notifPrefs();
+  h+='<div style="font-size:10px;color:var(--txt3);margin-top:8px;line-height:1.9;">';
+  h+='School day completed: <span style="color:var(--gold2);">'+(pr.schoolComplete?'ON':'off')+'</span><br>';
+  h+='All chores done: <span style="color:var(--gold2);">'+(pr.allChoresComplete?'ON':'off')+'</span><br>';
+  h+='Each chore completed: <span style="color:var(--gold2);">'+(pr.choreComplete?'ON':'off')+'</span><br>';
+  h+='Reward redeemed: <span style="color:var(--gold2);">'+(pr.rewardUnlocked?'ON':'off')+'</span><br>';
+  h+='Rank promotion: <span style="color:var(--gold2);">'+(pr.rankUp?'ON':'off')+'</span></div></div>';
+
+  h+='<div class="panel"><div class="ph">CONNECTION<div class="ph-line"></div></div>';
+  h+='<div style="font-size:10px;color:var(--txt3);line-height:1.9;">';
+  h+='FAMILY ID: <span style="color:var(--gold2);">'+esc(window.FAMILY_ID||'default')+'</span><br>';
+  h+='PROJECT: <span style="color:var(--gold2);">'+esc((window.FIREBASE_CONFIG||{}).projectId||'—')+'</span><br>';
+  h+='APP: <a href="index.html" style="color:var(--blue);">open Lincoln\'s app</a></div></div>';
+
+  h+='<button class="btn btn-ghost" onclick="lockNow()">&#128274; LOCK DASHBOARD</button>';
+  $('tab-settings').innerHTML=h;
+}
+window.savePin=function(){
+  const p=$('f-pin').value.trim();
+  if(p.length!==4||isNaN(p)){showToast('PIN must be exactly 4 digits');return;}
+  $('f-pin').value='';
+  push({pin:p},'PIN updated');
+};
+window.remoteReset=function(field,msg){
+  if(!confirm(msg))return;
+  push({[field]:Date.now()},'Sent to iPad');
+};
+window.resetAllProgress=function(){
+  if(!confirm('Reset ALL progress — XP, streaks, redeemed rewards? This cannot be undone.'))return;
+  cloud.setProgressAll({updatedAt:Date.now()}).catch(()=>{});
+  prog={};
+  push({resetProgressAt:Date.now()},'Progress reset');
+};
+window.lockNow=function(){
+  unlocked=false;sessionStorage.removeItem('dash_ok');
+  $('pin-err').textContent='';showScreen('lock');
+};
+
+// ── Write helper: optimistic local update + Firestore merge ──
+function push(patch,msg){
+  Object.assign(cfg,patch);
+  render();
+  cloud.patchConfig({...patch,updatedAt:Date.now()})
+    .then(()=>{if(msg)showToast(msg);})
+    .catch(e=>{setSync(false);showToast('SYNC FAILED — CHECK CONNECTION');console.warn(e);});
+}
+</script>
+</body>
+</html>

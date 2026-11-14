@@ -416,6 +416,33 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
 .rot-mv-btn:hover{border-color:var(--blue);color:var(--blue);}
 .rot-mv-btn:disabled{opacity:.2;cursor:default;}
 .rot-mv-wrap{display:flex;flex-direction:column;gap:5px;}
+
+/* ── INTEL / ACHIEVEMENTS ── */
+.achv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.achv-card{background:var(--bg2);border:1px solid var(--border2);border-left:3px solid var(--border);
+  padding:12px;position:relative;opacity:.45;transition:opacity .2s;}
+.achv-card.earned{opacity:1;border-left-color:var(--gold);background:var(--golddim);}
+.achv-card.earned::before,.achv-card.earned::after{content:'';position:absolute;width:6px;height:6px;border-color:var(--gold2);border-style:solid;}
+.achv-card.earned::before{top:0;left:0;border-width:1px 0 0 1px;}
+.achv-card.earned::after{bottom:0;right:0;border-width:0 1px 1px 0;}
+.achv-ico{font-size:22px;line-height:1;margin-bottom:7px;filter:grayscale(1) opacity(.7);}
+.achv-card.earned .achv-ico{filter:none;}
+.achv-name{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--txt3);line-height:1.2;}
+.achv-card.earned .achv-name{color:var(--gold2);}
+.achv-desc{font-size:10px;color:var(--txt4);margin-top:5px;line-height:1.4;}
+.achv-date{font-size:8px;color:var(--gold);letter-spacing:1px;margin-top:7px;}
+.achv-locked{font-size:8px;color:var(--txt4);letter-spacing:2px;margin-top:7px;}
+
+/* ── NOTIF TOGGLES (PARENT) ── */
+.nt-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 2px;border-bottom:1px solid var(--border2);cursor:pointer;}
+.nt-row:last-child{border-bottom:none;}
+.nt-lbl{font-size:11px;color:var(--txt2);letter-spacing:.5px;line-height:1.3;}
+.nt-cb{appearance:none;-webkit-appearance:none;width:42px;height:22px;background:var(--bg2);
+  border:1px solid var(--border);position:relative;flex-shrink:0;cursor:pointer;transition:all .15s;}
+.nt-cb::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--txt4);transition:all .15s;}
+.nt-cb:checked{background:var(--goldfaint);border-color:var(--gold);}
+.nt-cb:checked::after{left:22px;background:var(--gold2);}
 </style>
 </head>
 <body>
@@ -448,6 +475,17 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
       <button class="pin-key cancel" onclick="pinCancel()">&#10005;</button>
     </div>
     <div class="pin-err" id="pin-err"></div>
+  </div>
+</div>
+
+<!-- NOTIF SETTINGS MODAL (PARENT) -->
+<div class="pin-overlay" id="notif-overlay">
+  <div class="pin-box" style="min-width:320px;max-width:370px;">
+    <div class="pin-title">PARENT NOTIFICATIONS</div>
+    <div class="pin-sub">ALERTS SHOWN ON THE PARENT DASHBOARD</div>
+    <div id="notif-list" style="text-align:left;margin:4px 0 14px;"></div>
+    <button class="btn-gold" style="margin-top:0;" onclick="saveNotif()">&#10003; &nbsp; SAVE SETTINGS</button>
+    <button class="btn-ghost" onclick="closeNotif()">CLOSE</button>
   </div>
 </div>
 
@@ -740,6 +778,21 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
           </div>
         </div>
         <button class="btn-gold" onclick="nav('brief')">&#9675; &nbsp; NEW BRIEFING</button>
+        <button class="btn-ghost" onclick="requirePin('notif')">&#9873; &nbsp; NOTIFICATION SETTINGS (PARENT)</button>
+      </div>
+
+      <!-- INTEL / ACHIEVEMENTS -->
+      <div class="screen" id="s-intel">
+        <div class="xp-hero">
+          <div class="xp-lbl">INTEL DECLASSIFIED</div>
+          <div class="xp-val" id="i-count">0</div>
+          <div class="xp-max" id="i-total">/ 12 ACHIEVEMENTS</div>
+          <div class="xp-bar-track"><div class="xp-bar-fill" id="i-fill" style="width:0%"></div></div>
+        </div>
+        <div class="panel">
+          <div class="ph">Service Record<div class="ph-line"></div><span class="ph-count" id="i-pct"></span></div>
+          <div id="i-grid" class="achv-grid"></div>
+        </div>
       </div>
 
 
@@ -752,6 +805,7 @@ body{font-family:'Share Tech Mono',monospace;color:var(--txt);overscroll-behavio
     <button class="nb"        id="nb-activities" onclick="nav('activities')"> <span class="nb-icon">&#10003;</span>TASKS</button>
     <button class="nb"        id="nb-rewards"    onclick="nav('rewards')">    <span class="nb-icon">&#9733;</span>REWARDS</button>
     <button class="nb"        id="nb-debrief"    onclick="nav('debrief')">    <span class="nb-icon">&#9670;</span>DEBRIEF</button>
+    <button class="nb"        id="nb-intel"      onclick="nav('intel')">     <span class="nb-icon">&#10070;</span>INTEL</button>
   </div>
   <div class="botbar">
     <div><span class="blink">&#9632;</span> SHADOW OPS v4.0</div>
@@ -910,7 +964,7 @@ function isActiveDay(days){
 }
 
 function nav(screen){
-  const screens=['brief','mission','school','activities','rewards','debrief'];
+  const screens=['brief','mission','school','activities','rewards','debrief','intel'];
   screens.forEach(s=>{
     const sc=document.getElementById('s-'+s);if(sc)sc.classList.remove('active');
     const nb=document.getElementById('nb-'+s);
@@ -919,9 +973,9 @@ function nav(screen){
   const sc=document.getElementById('s-'+screen);if(sc)sc.classList.add('active');
   const nb=document.getElementById('nb-'+screen);
   if(nb){if(screen==='school')nb.classList.add('school-active');else nb.classList.add('active');}
-  const titles={brief:'SHADOW OPS',mission:"TODAY'S SCHEDULE",school:'SCHOOL MISSION',activities:'MISSION BOARD',rewards:'REWARDS DEPOT',debrief:'DAILY DEBRIEF'};
+  const titles={brief:'SHADOW OPS',mission:"TODAY'S SCHEDULE",school:'SCHOOL MISSION',activities:'MISSION BOARD',rewards:'REWARDS DEPOT',debrief:'DAILY DEBRIEF',intel:'INTEL ARCHIVE'};
   document.getElementById('app-title').textContent=titles[screen]||'SHADOW OPS';
-  const renders={brief:renderBrief,mission:renderMission,school:renderSchool,activities:renderActivities,rewards:renderRewards,debrief:renderDebrief};
+  const renders={brief:renderBrief,mission:renderMission,school:renderSchool,activities:renderActivities,rewards:renderRewards,debrief:renderDebrief,intel:renderIntel};
   if(renders[screen])renders[screen]();
 }
 
@@ -935,6 +989,88 @@ function getRankData(){
 }
 
 function updateSidebar(){}
+
+// ── ACHIEVEMENTS (cosmetic — no XP) ──
+const ACHIEVEMENTS=[
+  {id:'first_blood',   icon:'&#9873;',  name:'FIRST BLOOD',     desc:'Earn your first XP.',                    test:()=>getChoreXP()>0},
+  {id:'rank_cpl',      icon:'&#9878;',  name:'PROMOTED',        desc:'Reach the rank of Corporal.',            test:()=>getRankData().idx>=1},
+  {id:'rank_sgt',      icon:'&#9819;',  name:'HARD CHARGER',    desc:'Reach the rank of Sergeant.',            test:()=>getRankData().idx>=2},
+  {id:'rank_officer',  icon:'&#9733;',  name:'OFFICER ON DECK', desc:'Reach the rank of Lieutenant.',          test:()=>getRankData().idx>=4},
+  {id:'rank_general',  icon:'&#10038;', name:'FIVE STAR',       desc:'Reach the rank of General.',             test:()=>getRankData().idx>=8},
+  {id:'streak_3',      icon:'&#9650;',  name:'ON A ROLL',       desc:'Hold a 3-day streak.',                   test:()=>getStreak()>=3},
+  {id:'streak_7',      icon:'&#9670;',  name:'WEEK WARRIOR',    desc:'Hold a 7-day streak.',                   test:()=>getStreak()>=7},
+  {id:'streak_30',     icon:'&#9788;',  name:'IRON DISCIPLINE', desc:'Hold a 30-day streak.',                  test:()=>getStreak()>=30},
+  {id:'xp_1000',       icon:'&#9679;',  name:'QUARTERMASTER',   desc:'Earn 1,000 total XP.',                   test:()=>getChoreXP()>=1000},
+  {id:'xp_5000',       icon:'&#9724;',  name:'WAR CHEST',       desc:'Earn 5,000 total XP.',                   test:()=>getChoreXP()>=5000},
+  {id:'first_reward',  icon:'&#127873;',name:'SPOILS OF WAR',   desc:'Redeem your first reward.',              test:()=>S.get('v4_unlocks',[]).length>=1},
+  {id:'school_perfect',icon:'&#9634;',  name:'TOP OF THE CLASS',desc:'Finish every lesson in a school day.',   test:()=>S.get('v4_school_perfect_ever',false)},
+];
+function getAchv(){return S.get('v4_achv',{});}
+function checkAchievements(silent){
+  const earned=getAchv();let changed=false;const newly=[];
+  ACHIEVEMENTS.forEach(a=>{
+    if(!earned[a.id]){try{if(a.test()){earned[a.id]=Date.now();changed=true;newly.push(a);}}catch(e){}}
+  });
+  if(changed)S.set('v4_achv',earned);
+  if(!silent&&newly.length){
+    newly.forEach((a,i)=>setTimeout(()=>{showToast('❖ ACHIEVEMENT UNLOCKED — '+a.name);playSuccess();},i*1200));
+    if(document.getElementById('s-intel').classList.contains('active'))renderIntel();
+  }
+  return newly;
+}
+function renderIntel(){
+  checkAchievements(true);
+  const earned=getAchv();
+  const n=ACHIEVEMENTS.filter(a=>earned[a.id]).length;
+  const pct=Math.round((n/ACHIEVEMENTS.length)*100);
+  document.getElementById('i-count').textContent=n;
+  document.getElementById('i-total').textContent='/ '+ACHIEVEMENTS.length+' ACHIEVEMENTS';
+  document.getElementById('i-fill').style.width=pct+'%';
+  document.getElementById('i-pct').textContent=pct+'%';
+  const grid=document.getElementById('i-grid');grid.innerHTML='';
+  ACHIEVEMENTS.forEach(a=>{
+    const ts=earned[a.id];
+    const d=document.createElement('div');d.className='achv-card'+(ts?' earned':'');
+    d.innerHTML='<div class="achv-ico">'+a.icon+'</div><div class="achv-name">'+a.name+'</div>'+
+      '<div class="achv-desc">'+a.desc+'</div>'+
+      (ts?'<div class="achv-date">DECLASSIFIED '+new Date(ts).toLocaleDateString()+'</div>':'<div class="achv-locked">&mdash; CLASSIFIED &mdash;</div>');
+    grid.appendChild(d);
+  });
+}
+
+// ── PARENT NOTIFICATION SETTINGS ──
+// Toggles are stored locally and pushed to cloud config; the parent dashboard
+// reads cfg.notifPrefs and fires browser notifications on matching progress events.
+const NOTIF_OPTS=[
+  {key:'schoolComplete',   label:'School day completed'},
+  {key:'allChoresComplete',label:'All chores done for the day'},
+  {key:'choreComplete',    label:'Each individual chore completed'},
+  {key:'rewardUnlocked',   label:'Reward redeemed'},
+  {key:'rankUp',           label:'Rank promotion'},
+];
+function getNotifPrefs(){
+  const d={schoolComplete:true,allChoresComplete:true,choreComplete:false,rewardUnlocked:true,rankUp:true};
+  return Object.assign(d,S.get('v4_notif_prefs',{}));
+}
+function openNotif(){
+  const p=getNotifPrefs();
+  const list=document.getElementById('notif-list');list.innerHTML='';
+  NOTIF_OPTS.forEach(o=>{
+    const row=document.createElement('label');row.className='nt-row';
+    row.innerHTML='<span class="nt-lbl">'+o.label+'</span><input type="checkbox" class="nt-cb" id="nt-'+o.key+'"'+(p[o.key]?' checked':'')+'>';
+    list.appendChild(row);
+  });
+  document.getElementById('notif-overlay').classList.add('show');
+}
+function closeNotif(){document.getElementById('notif-overlay').classList.remove('show');}
+function saveNotif(){
+  const p={};
+  NOTIF_OPTS.forEach(o=>{const el=document.getElementById('nt-'+o.key);p[o.key]=!!(el&&el.checked);});
+  S.set('v4_notif_prefs',p);
+  if(cloud&&!applyingCloud)cloud.patchConfig({notifPrefs:p,updatedAt:Date.now()}).catch(()=>{});
+  closeNotif();
+  showToast('NOTIFICATION SETTINGS SAVED.');
+}
 
 function renderBrief(){
   const h=new Date().getHours();
@@ -1073,6 +1209,8 @@ function renderSchool(){
     document.getElementById('sc-score').textContent=doneCt+'/'+total;
     document.getElementById('sc-msg').textContent=pct===100?'All subjects done. Outstanding academic performance, soldier.':pct>=80?'Strong school day. Almost perfect.':'School complete. Push harder tomorrow.';
     if(!S.get('v4_streak_school_'+todayStr(),false)){S.set('v4_streak',getStreak()+1);S.set('v4_streak_school_'+todayStr(),true);}
+    S.set('v4_school_perfect_ever',true);
+    checkAchievements();
   }
 }
 
@@ -1228,7 +1366,7 @@ function schoolMarkDone(){
   clearInterval(schoolTimerInterval);
   const idx=getSchoolCurIdx();if(idx<0)return;
   setSchoolDone(idx);setSchoolCurIdx(-1);schoolTimerPaused=false;
-  playXP();updateSidebar();
+  playXP();updateSidebar();checkAchievements();
   const nextIdx=LESSONS.findIndex((_,i)=>i>idx&&!getSchoolDone(i));
   if(nextIdx>=0){renderLessonList();loadLesson(nextIdx);}
   else{resetSchoolHeroDisplay();renderSchool();}
@@ -1272,7 +1410,7 @@ function resetSchool(){
 function doSchedItem(idx,xp){
   S.set(schedKey(idx),true);
   if(xp>0){addChoreXP(xp);addSpendable(xp);showXPFlash('+'+xp+' XP');playXP();}
-  updateSidebar();renderActivities();
+  updateSidebar();renderActivities();checkAchievements();
 }
 
 function renderActivities(){
@@ -1322,7 +1460,7 @@ function renderActivities(){
 function completeChore(i,c){
   S.set(choreKey(i),true);
   if(c.xp>0){addChoreXP(c.xp);addSpendable(c.xp);showXPFlash('+'+c.xp+' XP');playXP();}
-  updateSidebar();renderActivities();
+  updateSidebar();renderActivities();checkAchievements();
   if(CHORES.every((_,i)=>isChoresDone(i)))setTimeout(()=>showToast('ALL CHORES COMPLETE — FULL XP EARNED!'),400);
 }
 
@@ -1357,7 +1495,7 @@ function unlockReward(id,cost,name){
   const sp=getSpendable();if(sp<cost)return;
   S.set('v4_spend',sp-cost);setSpent(getSpent()+cost);
   const unlocks=S.get('v4_unlocks',[]);unlocks.push({id,name,date:new Date().toLocaleDateString(),cost});S.set('v4_unlocks',unlocks);
-  playSuccess();showToast('REWARD UNLOCKED: '+name);renderRewards();updateSidebar();
+  playSuccess();showToast('REWARD UNLOCKED: '+name);renderRewards();updateSidebar();checkAchievements();
 }
 
 function renderDebrief(){
@@ -1399,6 +1537,7 @@ function checkPin(){
     if(action==='skipschool')skipSchool();
     else if(action==='resetschool')resetSchool();
     else if(action==='resetactivities')resetActivities();
+    else if(action==='notif')openNotif();
   }else{
     document.getElementById('pin-err').textContent='INCORRECT PIN — TRY AGAIN.';
     pinBuffer='';updatePinDots();
@@ -1453,7 +1592,7 @@ const BOOT_LINES=[
 function launchApp(){
   document.getElementById('splash').classList.add('sp-out');
   document.getElementById('app').classList.add('ready');
-  setClock();renderBrief();renderActivities();loadWeather();updateSidebar();
+  setClock();renderBrief();renderActivities();loadWeather();updateSidebar();checkAchievements(true);
   setInterval(setClock,1000);setInterval(updateUptime,1000);
   setInterval(()=>{
     if(document.getElementById('s-brief').classList.contains('active'))renderBrief();
@@ -1526,7 +1665,7 @@ function doResetProgress(){
 }
 
 function refreshActiveScreen(){
-  const renders={brief:renderBrief,mission:renderMission,school:renderSchool,activities:renderActivities,rewards:renderRewards,debrief:renderDebrief};
+  const renders={brief:renderBrief,mission:renderMission,school:renderSchool,activities:renderActivities,rewards:renderRewards,debrief:renderDebrief,intel:renderIntel};
   Object.keys(renders).forEach(s=>{
     const el=document.getElementById('s-'+s);
     if(el&&el.classList.contains('active'))renders[s]();
@@ -1544,6 +1683,7 @@ function applyCloudConfig(cfg){
     if(typeof cfg.rotWeek==='number')S.set('v4_rot_week',cfg.rotWeek);
     if(cfg.rotWeekDate)S.set('v4_rot_week_date',cfg.rotWeekDate);
     if(cfg.pin)S.set('v4_pin',String(cfg.pin));
+    if(cfg.notifPrefs&&typeof cfg.notifPrefs==='object')S.set('v4_notif_prefs',cfg.notifPrefs);
   }finally{applyingCloud=false;}
   reloadFromAdmin();
   refreshActiveScreen();
@@ -1575,6 +1715,7 @@ window.__cloudReady=function(api){
         blocks:admGetBlocks(),chores:admGetChores(),rewards:admGetRewards(),
         rotOverrides:S.get('v4_rot_overrides',{}),rotWeek:getRotationWeek(),
         rotWeekDate:S.get('v4_rot_week_date',todayStr()),pin:getPin(),
+        notifPrefs:getNotifPrefs(),
         seeded:true,seededAt:Date.now()
       }).catch(()=>{});
       return;
